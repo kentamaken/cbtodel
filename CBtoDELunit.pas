@@ -5,8 +5,7 @@ interface
 uses
 	Winapi.Windows,Winapi.Messages,System.SysUtils,System.Variants,System.Classes,Vcl.Graphics,
 	Vcl.Controls,Vcl.Forms,Vcl.Dialogs,Vcl.ExtCtrls,Vcl.StdCtrls,Vcl.ComCtrls,types,
-  Vcl.Menus, IWVCLBaseControl, IWBaseControl, IWBaseHTMLControl, IWControl,
-  IWCompGrids, Vcl.Grids;
+  Vcl.Menus,  Vcl.Grids;
 
 type
 	TIntArray=array of Integer;
