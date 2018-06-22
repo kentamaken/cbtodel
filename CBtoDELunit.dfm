@@ -183,9 +183,6 @@ object FormCBtoDEL: TFormCBtoDEL
       ParentDoubleBuffered = False
       PopupMenu = PopupMenu2
       TabOrder = 0
-      OnMouseDown = CGMouseDown
-      OnMouseUp = CGMouseUp
-      OnSelectCell = CGSelectCell
       OnSetEditText = CGSetEditText
       ColWidths = (
         64
@@ -306,8 +303,8 @@ object FormCBtoDEL: TFormCBtoDEL
     Zoom = 100
   end
   object MainMenu1: TMainMenu
-    Left = 56
-    Top = 64
+    Left = 72
+    Top = 40
     object MConv: TMenuItem
       Caption = #22793#25563
       OnClick = MConvClick
@@ -417,28 +414,30 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = '%0% '#19968#33268#12375#12383#37096#20998
       OnClick = MenuItemGridClick
     end
+    object MenuItem8: TMenuItem
+      Caption = '%s0% '#12502#12525#12483#12463#20013#36523
+      OnClick = MenuItemGridClick
+    end
     object MenuItem7: TMenuItem
       Caption = '%s0% '#12477#12540#12473
       OnClick = MenuItemGridClick
     end
-    object MenuItem8: TMenuItem
-      Caption = '%c0% '#30058#21495#12424#12426#24460#12429#12377#12409#12390
-      OnClick = MenuItemGridClick
+    object c01: TMenuItem
+      Caption = '%c0% '#24460#12429#12377#12409#12390
     end
-    object MenuItem9: TMenuItem
-      Caption = '%e0% enum'#29992#12502#12525#12483#12463
-      OnClick = MenuItemGridClick
+    object o01: TMenuItem
+      Caption = '%o0% '#12477#12540#12473
     end
     object MenuItem10: TMenuItem
       Caption = '%CR% '#25913#34892
       OnClick = MenuItemGridClick
     end
     object MenuItem11: TMenuItem
-      Caption = #65285'end%'
+      Caption = #65285'E%'
       OnClick = MenuItemGridClick
     end
     object MenuItem12: TMenuItem
-      Caption = '%ind% '#12452#12531#12487#12531#12488
+      Caption = '%i% '#12452#12531#12487#12531#12488
       OnClick = MenuItemGridClick
     end
     object MenuItem13: TMenuItem

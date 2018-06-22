@@ -1,11 +1,12 @@
 ﻿unit CBtoDELunit;
 
+
 interface
 
 uses
 	Winapi.Windows,Winapi.Messages,System.SysUtils,System.Variants,System.Classes,Vcl.Graphics,
-	Vcl.Controls,Vcl.Forms,Vcl.Dialogs,Vcl.ExtCtrls,Vcl.StdCtrls,Vcl.ComCtrls,types,
-  Vcl.Menus,  Vcl.Grids;
+	Vcl.Controls,Vcl.Forms,Vcl.Dialogs,Vcl.ExtCtrls,Vcl.StdCtrls,types,
+  Vcl.Menus,  Vcl.Grids, Vcl.ComCtrls,RegularExpressions;
 
 type
 	TIntArray=array of Integer;
@@ -35,13 +36,6 @@ type
 		symArray=$40000000,symVar=$80000000,symAll=$FFFFFFFF);
 
 
-//	TTSymbol=class
-//	private
-//		typ:TSymbolType;
-//		class constructor Create;
-//	end;
-//
-
 	TSymbol=record
 	public
 		typ:TSymbolType;
@@ -58,7 +52,6 @@ type
 	PSymbol=^TSYmbol;
 	TSymbolArray=array of TSymbol;
 
-//	TSymbolArrayHelper=record helper for TSymbolArray
 	TSymbols=record
 		null:TSymbol;
 		items:TSymbolArray;
@@ -72,46 +65,54 @@ type
 		function source:string;
 		function getstring(Index:Integer):string;
 		procedure putstring(Index:Integer;const s:string);
-		property strings[Index:Integer]:string read Getstring write Putstring;
+		property strings[Index:Integer]:string read getstring write putstring;
 
 		function get(Index:Integer):TSymbol;
 		procedure put(Index:Integer;const s:TSymbol);
-		property item[Index: Integer]: TSymbol read get write put; default;
+		property item[Index:Integer]:TSymbol read get write put;default;
 
 		//	  function del(i:Integer): Integer;
 		//	  function ins(i:Integer): Integer;
 		//	  function move(i:Integer): Integer;
-	  private
-		function structureisstr(position:integer;arg: TStringDynArray): integer;
+	private
+		function structureisstr(position:Integer;arg:TStringDynArray):Integer;
+	end;
+
+	TStringSelf=class(TStringList)
+	public
+		buf:string;
+		function this:TStringList;
 	end;
 
 	TStringDynArrayHelper=record helper for TStringDynArray
 		function add(s:string):Integer;
 		function item(i:Integer):String;
+		function stringselfcreate:TStringSelf;
 		function load(f:string):boolean;
+		function save(f:string):boolean;
 		function getcount:Integer;
-		procedure setcount(const i:integer);
+		procedure setcount(const i:Integer);
 		function hi:Integer;
-		property count:integer read getcount write setcount;
+		property count:Integer read getcount write setcount;
 	end;
 
-TGrid = class(TStringGrid)
-	  private
-	 constructor CreateEX(Origin :TStringGrid);
-	 procedure WMChar(var Msg: TWMChar); message WM_CHAR;
-	procedure CutCopy(modecut: boolean);
-	procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-	function Paste: TGridRect;
-	procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X,
-	  Y: Integer);override;
-	function DoMouseWheelDown(Shift: TShiftState; MousePos: TPoint): Boolean; override;
-	function DoMouseWheelUp(Shift: TShiftState; MousePos: TPoint): Boolean; override;
+	TGrid=class(TStringGrid)
+	private
+		constructor CreateEX(Origin:TStringGrid);
+		procedure WMChar(var Msg:TWMChar);message WM_CHAR;
+		procedure CutCopy(modecut:boolean);
+		procedure KeyDown(var Key:Word;Shift:TShiftState);override;
+		function Paste:TGridRect;
+		procedure MouseDown(Button:TMouseButton;Shift:TShiftState;
+			X,Y:Integer);override;
+		function DoMouseWheelDown(Shift:TShiftState;MousePos:TPoint)
+			:boolean;override;
+		function DoMouseWheelUp(Shift:TShiftState;MousePos:TPoint)
+			:boolean;override;
 	published
 		property InplaceEditor;
 
-
-
-end;
+	end;
 
 
 	TFormCBtoDEL=class(TForm)
@@ -135,7 +136,7 @@ end;
     PopupMenu1: TPopupMenu;
     PConv: TMenuItem;
 	PCut: TMenuItem;
-    PCopy: TMenuItem;
+	PCopy: TMenuItem;
     PPeste: TMenuItem;
     Mend: TMenuItem;
 	N8: TMenuItem;
@@ -148,7 +149,6 @@ end;
 	MenuItem6: TMenuItem;
 	MenuItem7: TMenuItem;
 	MenuItem8: TMenuItem;
-	MenuItem9: TMenuItem;
 	MenuItem10: TMenuItem;
 	MenuItem11: TMenuItem;
 	MenuItem12: TMenuItem;
@@ -163,10 +163,10 @@ end;
 	Label2: TLabel;
 	EditLineBlock: TEdit;
     Label1: TLabel;
-    EditSet: TEdit;
+	EditSet: TEdit;
     MRowDup: TMenuItem;
-    MRowDel: TMenuItem;
-    MDvrow: TMenuItem;
+	MRowDel: TMenuItem;
+	MDvrow: TMenuItem;
     MSet: TMenuItem;
     MFixed: TMenuItem;
     MLSource: TMenuItem;
@@ -174,6 +174,8 @@ end;
     ButtonOk: TButton;
     EditVarBlock: TEdit;
     Label3: TLabel;
+    c01: TMenuItem;
+    o01: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -184,12 +186,6 @@ end;
 		procedure FormCreate(Sender: TObject);
 		procedure CGSetEditText(Sender: TObject; ACol, ARow: Integer;
 		  const Value: string);
-		procedure CGMouseDown(Sender: TObject; Button: TMouseButton;
-		  Shift: TShiftState; X, Y: Integer);
-		procedure CGMouseUp(Sender: TObject; Button: TMouseButton;
-		  Shift: TShiftState; X, Y: Integer);
-	procedure CGSelectCell(Sender: TObject; ACol, ARow: Integer;
-	  var CanSelect: Boolean);
 	procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 	procedure FormDestroy(Sender: TObject);
 	procedure MFolderClick(Sender: TObject);
@@ -201,10 +197,8 @@ end;
 	procedure MSetClick(Sender: TObject);
 
 	private
-		{ Private 宣言 }
 	public
-		{ Public 宣言 }
-   inidir:String;
+	   inidir:String;
 	end;
 
 function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
@@ -221,7 +215,7 @@ implementation
 
 uses
 	System.Generics.Collections,System.Generics.Defaults,strutils
-	,IniFiles ,Masks,Clipbrd,dgridlib,utild,RegularExpressions;
+	,IniFiles ,Masks,Clipbrd,dgridlib,utild;
 
 const
 	SYMMAXLEN=1024;
@@ -243,24 +237,16 @@ var PCol, PRow: Integer;
 		regmatchstr:TStringDynArray;
 
 
+function TStringSelf.this:TStringList;
+begin
+	exit(self);
+end;
+
+
 function split(s:string;i:integer;d:string=' '):string;
 begin
 	result:=SplitString(s,d).item(i);
 end;
-
-
-procedure TFormCBtoDEL.CGSelectCell(Sender: TObject; ACol, ARow: Integer;
-  var CanSelect: Boolean);
-begin
-//	if Point(ACol,ARow)<>Point(CG.Col,CG.Row) then exit;
-//
-//	if not (goEditing in CG.Options) then begin
-//		CG.Options:=CG.Options+[goEditing];
-//
-//	end;
-
-end;
-
 
 
 procedure TFormCBtoDEL.ButtonT0Click(Sender: TObject);
@@ -268,38 +254,6 @@ begin
 //	TGrid(CG).InplaceEditor.seltext:=TButton(Sender).Caption;
 	CG.cells[CG.col,CG.row]:=CG.cells[CG.col,CG.row]+TButton(Sender).Caption;
 end;
-
-procedure TFormCBtoDEL.CGMouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
- var ACol, ARow: Integer;
-begin
-////	CG.Options:=CG.Options-[goEditing];
-////	p:=ClientToScreen(Point(x, y));
-//////	CG.Dra
-////	SendMessage(CG.Handle, WM_LBUTTONDOWN, 0, MAKELPARAM(x,y));
-//
-//	CG.MouseToCell(X,Y,ACol, ARow);
-//	if Point(ACol,ARow)<>Point(PCol,PRow) then exit;
-////	CG.Options:=CG.Options+[goEditing];
-////	CG.EditorMode:=true;
-
-end;
-
-procedure TFormCBtoDEL.CGMouseUp(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
- var ACol, ARow: Integer;
-begin
-//	CG.MouseToCell(X,Y,ACol, ARow);
-//	if Point(PCol,PRow)=Point(ACol,ARow) then begin
-//		CG.Options:=CG.Options+[goEditing];
-//		CG.EditorMode:=true;
-//	end;
-//	if Point(CG.Col,CG.Row)=Point(ACol,ARow) then begin
-//		PCol:=ACol;
-//		PRow:=ARow;
-//	end;
-end;
-
 
 procedure TFormCBtoDEL.CGSetEditText(Sender: TObject; ACol, ARow: Integer;
   const Value: string);
@@ -331,6 +285,26 @@ begin
 
 
 end;
+
+function trimrightlen(const s,ts:string;var len:integer):string;
+var
+	i:integer;
+	ei:integer;
+	si:integer;
+begin
+	result:='';
+	for i:=len downto 1 do begin
+		if(Pos(S[i],ts)<>0)then continue;
+		len:=i;
+
+		break;
+	end;
+	if len=0 then exit; //すべて削除文字
+	si:=1;
+	result:=Copy(S,si,len-si+1);
+end;
+
+
 
 procedure TFormCBtoDEL.MConvClick(Sender: TObject);
 var
@@ -391,6 +365,7 @@ var
 		sym :TSymbol;
 		syms:TSymbols;
 		s宣言ブロック:boolean;
+		イフ:boolean;
 
 		function symbol:TSymbol;
 		var
@@ -475,23 +450,15 @@ var
 			function get(i:integer):string;   //
 			begin
 				inc(i,posstart);
-				if syms[i].typ=symCBlock then
-					result:='begin'+CRLF+gets(i)+indenttab+'end;'
+				if syms[i].typ=symCBlock then begin
+					result:='begin'+CRLF+gets(i)+'end';
+					if not イフ then result:=result+';';
 
-				else if syms[i].typ=symKBlock then
+				end else if syms[i].typ=symKBlock then
 					result:=' ( '+syms[i].str+' ) '+syms[i].cmt
 				else
 					result:=syms[i].convstr+syms[i].cmt;
 			end;
-
-			function getenum(i:integer):string;   //
-			begin
-				inc(i,posstart);
-				result:=StringReplace(syms[i].str,':=','=',[rfReplaceAll]);
-				result:=StringReplace(result,' , ',','+CRLF+indenttab+tab,[rfReplaceAll]);
-			end;
-
-
 
 			function incget(i:integer):string;   //一つ読んで進む
 			begin
@@ -512,6 +479,8 @@ var
 				inc(pos);
 			end;
 
+
+
 			function cat(pos:integer):string;   //最後までくっつける 最後の；なし
 			var i:integer;
 			begin
@@ -522,8 +491,12 @@ var
 					if result<>'' then result:=result+' ';
 					result:=result+get(i-posstart);
 				end;
-				result:=dtrimstring(result,' ;');
+//				result:=dtrimstring(result,' ;');
+				result:=result.trimright([' ',';']);
 			end;
+
+
+
 
 			function inccat:string;   //最後までくっつける
 			begin
@@ -539,34 +512,6 @@ var
 				result:=syms.structureisstr(posstart,SplitString(a,'｜'));
 			end;
 
-
-			function makefor:string;
-			var
-				param1:TStringDynArray;
-				param2:TStringDynArray;
-				param3:TStringDynArray;
-				s,vname:string;
-			begin
-				param1:=SplitString(trim(param[0]),' ');
-				param2:=SplitString(trim(param[1]),' ');
-				param3:=SplitString(trim(param[2]),' ');
-
-				if (Length(param1)>=3)and(Length(param2)=3)and(Length(param3)=2)then begin
-
-					if param1[2]=':=' then vname:=param1[1];
-					if param1[1]=':=' then vname:=param1[0];
-					if vname='' then exit;            //制御変数なし
-					if vname<>param2[0] then exit;    //制御異なる
-					if vname<>param3[0] then exit;    //制御異なる
-
-					if (param2[1]='<') and (param3[1]='++') then s:=' to '     +param2[2]+'-1 do ';
-					if (param2[1]='>') and (param3[1]='--') then s:=' downto ' +param2[2]+'+1 do ';
-					if (param2[1]='<=') and (param3[1]='++') then s:=' to '    +param2[2]+' do ';
-					if (param2[1]='>=') and (param3[1]='--') then s:=' downto '+param2[2]+' do ';
-
-					result:='for '+param[0]+s;
-				end;
-			end;
 
 			function replacegrid(var ret:string;var stype :TSymbolType):boolean;
 			var c,r:integer;
@@ -591,16 +536,26 @@ var
 				var rc:integer;
 				var c:integer;
 				var rm:integer;
+				var ri:integer;
 				var rs:string;
+				var rsd:string;
 				regmtc: TMatchCollection;
 				regmt: TMatch;
 				regg: TGroup;
+
+				function dele:boolean;
+				begin
+					if regmt.Value.indexof(s)<>0 then exit(false);
+					result:=true;
+				end;
+
 				function setrs(const s,v:string):boolean;
 				begin
 					if regmt.Value.indexof(s)<>0 then exit(false);
 					rs:=v;
 					result:=true;
 				end;
+
 				begin
 					regmtc:=TRegEx.Matches(rep,'%[a-zA-Z0-9\+]*%');
 					rm:=0;
@@ -608,18 +563,22 @@ var
 					for rc:=0 to regmtc.Count-1 do begin
 						regmt:=regmtc[rc];
 						c:=dval(regmt.Value)-1;
+						ri:=regmt.Index-1+rm;
+						rsd:=rep.SubString(ri);
 						if setrs('%CR%',CRLF) then else
 						if setrs('%E%',indenttab+'end;') then else
 						if setrs('%t%',TAB) then else
 						if setrs('%i%',indenttab) then else
 						if setrs('%i+%',indenttabplus) then else
+						if setrs('%d%','') then
+							rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
 						if setrs('%x',regmatchstr.item(c+1)) then else
 						if setrs('%c',cat(c)) then pos:=syms.count else
 						if setrs('%o',getstr(c)) then else
 						if setrs('%s',getsrc(c)) then else
 							setrs('%',get(c));
 
-						dstringreplace(rep,regmt.Index+rm,regmt.Length,rs);
+						rep:=rep.remove(ri,regmt.Length).insert(ri,rs);
 						rm:=rm-regmt.Length+rs.length;
 						if pos=syms.count then break;
 					end;
@@ -635,52 +594,11 @@ var
 					vrv:= CG.cells[3,r];
 					inccnt:=sis(par);
 					if inccnt>0 then begin
-						if MDvrow.Checked then CG.Selection:=gridrect(1,r,3,r);
+						if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 
 						replace(vrv);
 						replace(rep);
 						inc(pos,inccnt);
-
-//						for c:= 0 to para.hi do begin
-//							ns:=inttostr(c+1);
-//							vrv:=StringReplace(vrv,'%'+ns+'%',get(c),[rfReplaceAll]);
-//							vrv:=StringReplace(vrv,'%s'+ns+'%',getstr(c),[rfReplaceAll]);
-//							vrv:=StringReplace(vrv,'%o'+ns+'%',getsrc(c),[rfReplaceAll]);
-//
-////							rep:=dstringregexreplace(rep,'%'+ns+'%',rep)
-//							regmtc := TRegEx.Matches(rep,'%'+ns+'(.)([1-9]+)%');
-//							for regmt in regmtc do
-//								if regmt.Groups.Count=3 then begin
-//									subc:=dval(regmt.Groups[2].value);
-//									subd:=regmt.Groups[1].value;
-//									subs:=regmt.Groups[0].value;
-//									subr:=trim(split(syms[c].str,subc-1,subd));
-//									rep:=StringReplace(rep,subs,subr,[rfReplaceAll]);
-//								end;
-//
-//
-//							rep:=StringReplace(rep,'%'+ns+'%',get(c),[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%s'+ns+'%',getstr(c),[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%o'+ns+'%',getsrc(c),[rfReplaceAll]);
-////							rep:=StringReplace(rep,'%e'+ns+'%',getenum(c),[rfReplaceAll]);
-//							rep2:=StringReplace(rep,'%c'+ns+'%',cat(c),[rfReplaceAll]);
-//							if rep<>rep2 then begin
-//								pos:=syms.count; //
-//								rep:=rep2;
-//								break;
-//							end;
-//							rep:=StringReplace(rep,'%CR%',CRLF,[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%E%',indenttab+'end;',[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%t%',TAB,[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%i%',indenttab,[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%i+%',indenttabplus,[rfReplaceAll]);
-//							inc(pos);
-//						end;
-
-//						for c:= 0 to regmatchstr.hi do begin
-//							s:=regmatchstr.item(c);
-//							rep:=StringReplace(rep,'%x'+inttostr(c)+'%',s,[rfReplaceAll]);
-//						end;
 
 						if 宣言ブロック then begin
 						end else begin
@@ -860,6 +778,7 @@ var
 			s:string;
 		begin
 			改行まで:=false;
+			イフ:=false;
 			while (p[0]<>#0) do begin
 				sym:=symbol;
 				psym:=syms.last;
@@ -885,12 +804,15 @@ var
 					continue;
 				end;
 
-				if MatchStr(str,lineblock) then begin
-					改行まで:=true;
-				end;
-				if MatchStr(str,varblock) then begin
+				if str='if' then begin
+					イフ:=true;
 
+				end else if MatchStr(str,lineblock) then begin
+					改行まで:=true;
+
+				end else if MatchStr(str,varblock) then begin
 					宣言ブロック:=true;
+
 				end;
 
 				if str=CRLF then begin
@@ -902,19 +824,16 @@ var
 						break;
 					end;
 					continue;
-				end;
-				if str='(' then begin
+				end else if str='(' then begin
 					kakko;
 					continue;
-				end;
-				if str='{' then begin
+				end else if str='{' then begin
 					ckakko;
 //					continue;
 					sym:=symbol;
 					//if str<>'while' then //{}while
 					//	break;//{}ブロックは繋げたくない
-				end;
-				if str=breakchar then
+				end else if str=breakchar then
 					break;
 
 
@@ -922,9 +841,17 @@ var
 				syms.add(sym);
 
 				if not 改行まで then begin
-					if str=';' then break;
+					if str=';' then begin
+						if not イフ then break;
+						sym:=symbol;
+						if sym.str='else' then begin
+							syms.last^:=sym;
+							continue;
+						end;
+						symback;
+						break;
 
-					if str=':' then begin
+					end else if str=':' then begin
 
 						if psym.typ=symKBlock then continue;    //前カッコはメンバ初期化初期化
 						if 宣言ブロック then continue;//label:
@@ -970,12 +897,8 @@ begin
 
 			come                 :='';
 			dstt                 :=statements('');
-
-//			if str<>'}'  then dstt:=dstt+';';
-//			if str='}'  then dstt:=dstt+CRLF;
 			dsrc                 :=dsrc+dstt.str;
 			dsrc                 :=dsrc+CRLF;
-			//while (p[0]=CR)or(p[0]=LF) do inc(p);
 		end;
 		if varstr<>'' then begin
 			dsrc:=indentcr+varstr+dsrc;
@@ -1077,7 +1000,7 @@ begin
 		 Width     := Ini.ReadInteger( 'Form', 'Width', Width );
 		 Height    := Ini.ReadInteger( 'Form', 'Height', Height );
 		 PanelTop.Height    := Ini.ReadInteger( 'Form', 'PanelTop.Height', PanelTop.Height );
-         Panel2.Width:=ClientWidth div 2;
+		 Panel2.Width:=ClientWidth div 2;
 		 CB.Lines.Clear;
 		CB.Lines.LoadFromFile(txtfile);
 	except
@@ -1106,14 +1029,22 @@ begin
 
 	except
 
-    end;
+	end;
 		//CG.color:=clGray;
 	ActiveControl:=CG;
 end;
 
 procedure TFormCBtoDEL.MSaveClick(Sender: TObject);
+var SL:TStringDynArray;
+	i:integer;
 begin
-	gridSaveCsv(CG,csvfile,0,0);
+	for i:=0 to CG.RowCount-1 do begin
+		CG.rows[i].StrictDelimiter:=true;
+		CG.rows[i].Delimiter:=',';
+		CG.rows[i].QuoteChar:='"';
+		SL.add(CG.rows[i].DelimitedText);
+	end;
+	SL.save(csvfile);
 	CB.Lines.SaveToFile(txtfile);
 end;
 
@@ -1366,7 +1297,7 @@ begin
 		end;
 	end;
 	if match then
-		result:=di;
+		result:=di-position;
 end;
 
 function ISALPHA(c:CHAR):boolean;
@@ -1453,9 +1384,6 @@ begin
 	while ISSPACER(pos[0]) do inc(pos);
 
 	while (pos[0]<>#0) do begin
-		//		if(pos[0]='/')and(pos[1]='/')then ラインが計算できない
-		//			while ((pos[0]<>#13)and(pos[0]<>#0)) do inc(pos);
-
 		if ISNUMBER(pos[0]) then begin
 			while ISNUMBER(pos[0]) do begin
 				if addchrinc then break;
@@ -1464,6 +1392,11 @@ begin
 		end else if isadd('//',symComment) then begin
 			while (pos[0]<>#0) do begin
 				if iscat(CRLF,symComment) then break;
+				addchrinc;
+			end
+		end else if isadd('/*',symComment) then begin
+			while (pos[0]<>#0) do begin
+				if iscat('*/',symComment) then break;
 				addchrinc;
 			end
 
@@ -1684,6 +1617,15 @@ begin
 	result:=self[i];
 end;
 
+function TStringDynArrayHelper.save(f: string): boolean;
+begin
+	with stringselfcreate do
+		try
+			SavetoFile(f);
+		except
+			Free;
+		end;
+end;
 
 
 function TStringDynArrayHelper.load(f: string): boolean;
@@ -1696,6 +1638,14 @@ begin
 			Free;
 		end;
 end;
+
+function TStringDynArrayHelper.stringselfcreate:TStringSelf;
+var s:string;
+begin
+	result:=TStringSelf.Create;
+	for s in self do result.Add(s);
+end;
+
 
 constructor TGrid.CreateEX(Origin :TStringGrid);
 var
@@ -2107,3 +2057,103 @@ end.
 //					if syms[pos].str='=' then //宣言の次が代入
 //						s:=split(s,0,':')+'{:'+split(s,1,':')+'}';
 //				end;
+
+//			function makefor:string;
+//			var
+//				param1:TStringDynArray;
+//				param2:TStringDynArray;
+//				param3:TStringDynArray;
+//				s,vname:string;
+//			begin
+//				param1:=SplitString(trim(param[0]),' ');
+//				param2:=SplitString(trim(param[1]),' ');
+//				param3:=SplitString(trim(param[2]),' ');
+//
+//				if (Length(param1)>=3)and(Length(param2)=3)and(Length(param3)=2)then begin
+//
+//					if param1[2]=':=' then vname:=param1[1];
+//					if param1[1]=':=' then vname:=param1[0];
+//					if vname='' then exit;            //制御変数なし
+//					if vname<>param2[0] then exit;    //制御異なる
+//					if vname<>param3[0] then exit;    //制御異なる
+//
+//					if (param2[1]='<') and (param3[1]='++') then s:=' to '     +param2[2]+'-1 do ';
+//					if (param2[1]='>') and (param3[1]='--') then s:=' downto ' +param2[2]+'+1 do ';
+//					if (param2[1]='<=') and (param3[1]='++') then s:=' to '    +param2[2]+' do ';
+//					if (param2[1]='>=') and (param3[1]='--') then s:=' downto '+param2[2]+' do ';
+//
+//					result:='for '+param[0]+s;
+//				end;
+//			end;
+////	CG.Options:=CG.Options-[goEditing];
+////	p:=ClientToScreen(Point(x, y));
+//////	CG.Dra
+////	SendMessage(CG.Handle, WM_LBUTTONDOWN, 0, MAKELPARAM(x,y));
+//
+//	CG.MouseToCell(X,Y,ACol, ARow);
+//	if Point(ACol,ARow)<>Point(PCol,PRow) then exit;
+////	CG.Options:=CG.Options+[goEditing];
+////	CG.EditorMode:=true;
+
+//	CG.MouseToCell(X,Y,ACol, ARow);
+//	if Point(PCol,PRow)=Point(ACol,ARow) then begin
+//		CG.Options:=CG.Options+[goEditing];
+//		CG.EditorMode:=true;
+//	end;
+//	if Point(CG.Col,CG.Row)=Point(ACol,ARow) then begin
+//		PCol:=ACol;
+//		PRow:=ARow;
+//	end;
+
+//						for c:= 0 to para.hi do begin
+//							ns:=inttostr(c+1);
+//							vrv:=StringReplace(vrv,'%'+ns+'%',get(c),[rfReplaceAll]);
+//							vrv:=StringReplace(vrv,'%s'+ns+'%',getstr(c),[rfReplaceAll]);
+//							vrv:=StringReplace(vrv,'%o'+ns+'%',getsrc(c),[rfReplaceAll]);
+//
+////							rep:=dstringregexreplace(rep,'%'+ns+'%',rep)
+//							regmtc := TRegEx.Matches(rep,'%'+ns+'(.)([1-9]+)%');
+//							for regmt in regmtc do
+//								if regmt.Groups.Count=3 then begin
+//									subc:=dval(regmt.Groups[2].value);
+//									subd:=regmt.Groups[1].value;
+//									subs:=regmt.Groups[0].value;
+//									subr:=trim(split(syms[c].str,subc-1,subd));
+//									rep:=StringReplace(rep,subs,subr,[rfReplaceAll]);
+//								end;
+//
+//
+//							rep:=StringReplace(rep,'%'+ns+'%',get(c),[rfReplaceAll]);
+//							rep:=StringReplace(rep,'%s'+ns+'%',getstr(c),[rfReplaceAll]);
+//							rep:=StringReplace(rep,'%o'+ns+'%',getsrc(c),[rfReplaceAll]);
+////							rep:=StringReplace(rep,'%e'+ns+'%',getenum(c),[rfReplaceAll]);
+//							rep2:=StringReplace(rep,'%c'+ns+'%',cat(c),[rfReplaceAll]);
+//							if rep<>rep2 then begin
+//								pos:=syms.count; //
+//								rep:=rep2;
+//								break;
+//							end;
+//							rep:=StringReplace(rep,'%CR%',CRLF,[rfReplaceAll]);
+//							rep:=StringReplace(rep,'%E%',indenttab+'end;',[rfReplaceAll]);
+//							rep:=StringReplace(rep,'%t%',TAB,[rfReplaceAll]);
+//							rep:=StringReplace(rep,'%i%',indenttab,[rfReplaceAll]);
+//							rep:=StringReplace(rep,'%i+%',indenttabplus,[rfReplaceAll]);
+//							inc(pos);
+//						end;
+
+//						for c:= 0 to regmatchstr.hi do begin
+//							s:=regmatchstr.item(c);
+//							rep:=StringReplace(rep,'%x'+inttostr(c)+'%',s,[rfReplaceAll]);
+//						end;
+
+
+//			function getenum(i:integer):string;   //
+
+//			begin
+//				inc(i,posstart);
+//				result:=StringReplace(syms[i].str,':=','=',[rfReplaceAll]);
+//				result:=StringReplace(result,' , ',','+CRLF+indenttab+tab,[rfReplaceAll]);
+//			end;
+//
+
+

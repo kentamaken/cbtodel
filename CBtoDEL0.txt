@@ -1,0 +1,139 @@
+a+=(1+2);
+a-=1;
+a/=1;
+a*=1;
+delete a;
+
+#define LM_BASE        "BaseLayer"
+#define RAD(x) ((x) * 3.1415927 / 180)
+#define SETPOINT(P,ax,ay) P.x=ax;P.y=ay;
+
+enum TDrawType {
+	sTAG		=0,
+	sPOINT		=1,
+	sLINE		=2,
+};
+extern PACKAGE TAPPINFO PRM;
+
+class PACKAGE TGridCalc{
+public:
+	STRING source;
+	STRING elog;
+	PChar pos;
+}
+
+
+(a).b
+((a).b).c
+a.(b,(c))
+a->b.c()
+
+if(Shift.Contains(ssCtrl) && Shift.Contains(ssShift));
+
+class DPoint{
+public:
+	union{
+		TDPoint p;
+	    struct{
+			double x;
+			double y;
+		};
+	};
+	DPoint() : x(0.0),y(0.0){}
+	DPoint(double xp,double yp):x(xp),y(yp){}
+}
+
+
+class  PACKAGE TFormEditForm : public TForm
+{
+__published:	// IDE 管理のコンポーネント
+	TMenuItem *N3;
+	TCheckBox *EditGridOpenEditor;
+	void __fastcall EditItemKeyDown(TObject *Sender, WORD &Key,
+          TShiftState Shift);
+private:	// ユーザー宣言
+public:		// ユーザー宣言
+	__fastcall TFormEditForm(TComponent* Owner);
+
+	int itemno;
+	TExGrid *AGrid;
+	void formOut();
+	char changed[1024];
+	void gridIniSave(TExGrid * Grid,STRING FORMINI);
+};
+
+
+while (){
+{
+a
+}
+}
+
+#end#
+
+while (!isend()){
+	type=getsym(pos,str);
+	if(!StrIComp(str,L"End")){
+		type=getsym(pos,str);
+		if(!StrIComp(str,L"Sub"))
+			break;
+	}
+}
+
+#end#
+
+
+p!=NULL;
+*p!=NULL;
+
+for(PChar p=CSTR(s);*p!=NULL;p+=StrLen(p)+1)
+	G->RowCount++;
+
+for(int i=0;i<0;i++);
+for(int i=0;i<0;i++){}
+for(i=0;i<0;i++){}
+
+
+for(PChar p=CSTR(s);*p!=NULL;p+=StrLen(p)+1){
+	G->RowCount++;
+	G->Cells[1][G->RowCount-1]=p;
+}
+#end#
+
+do{
+	S=PAddNameEdit->Text+" (コピー";
+	if(i>0) S=S+i;
+	S=S+")";
+	i++;
+}while(fileExists(ConstDir+S));
+
+
+
+TExGrid * Grids(const int i){
+	if(i<0 || i>=Name->Count)return NULL;
+
+	TExGrid * G=(TExGrid*)Name->Objects[i];
+	G->Index=i;
+	return G;
+}
+#end#
+    TExGrid * Grids(const STRING NAME){
+	int i=Index(NAME);
+	if(i<0) return NullGrid;
+	TExGrid * G=(TExGrid*)Name->Objects[i];
+	G->Index=i;
+	return G;
+}
+
+
+if( a==1|a==1&a==1||a==1&&a==1)b=2;
+
+a=1+(2+(3+4)+5)+6+(7+(8+9)+0);
+const int *a;
+const int &a;
+const int a;
+int *a;
+int &a;
+int a;
+a=1;
+a=1+1;
