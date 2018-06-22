@@ -16,8 +16,6 @@ type
 		symStruct=$0100000E,
 		symSemicolon,
 		symColon,
-
-
 		symAnd,
 		symOr,
 		symPointer,
