@@ -723,62 +723,78 @@ var
 					var
 						ssym: tsymbol;
 
-							procedure muldiv;
+						procedure muldiv;
+						var
+							ssym: tsymbol;
+
+							procedure factor;
 							var
 								ssym: tsymbol;
-
-								procedure factor;
-								var
-									ssym: tsymbol;
-								begin
-									if sym.str.contains ['', ''] then begin
-									end;
-								end;
-
 							begin
-								factor;
-								if sym.str in ['*', '/', '%'] then begin
-									factor;
+								if MatchText(sym.str, ['', '']) then
+								begin
+									syms.add(sym);
 								end;
 							end;
 
+						begin
+							factor;
+							if MatchText(sym.str, ['*', '/', '%']) then
+							begin
+								syms.add(sym);
+								symnext;
+								factor;
+							end;
+						end;
 
 					begin
 						addsub;
-						if sym.str in ['==', '!=', '<', '>', '>=', '<='] then begin
+						if MatchText(sym.str, ['==', '!=', '<', '>', '>=', '<=']) then
+						begin
+							syms.add(sym);
+							symnext;
 							addsub;
 						end;
 					end;
 
 				begin
 					compare;
-					if sym.str in ['!'] then begin
+					if MatchText(sym.str, ['!']) then
+					begin
+						syms.add(sym);
+						symnext;
 						compare;
 					end;
 				end;
 
 			begin
 				nott;
-				if sym.str in ['&&', '||'] then begin
+				if MatchText(sym.str, ['&&', '||']) then
+				begin
+					syms.add(sym);
+					symnext;
 					nott;
 				end;
 			end;
 
 		begin
 			andor;
-			if sym.str in ['+', '-'] then begin
+			if MatchText(sym.str, ['+', '-']) then
+			begin
+				syms.add(sym);
+				symnext;
 				andor;
 			end;
 
 		end;
 
-	begin
+	begin
 
 		addsub;
-		syms.add(sym);
-		bsym:=sym;
-		symnext;
+//		bsym:=sym;
 		if sym.str='=' then begin
+			syms.add(sym);
+			symnext;
 			addsub;
 		end;
 	end;
