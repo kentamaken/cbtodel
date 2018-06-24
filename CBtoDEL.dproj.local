@@ -1,21 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <BorlandProject>
 	<Transactions>
-    <Transaction>1899/12/30 00:00:00.000.338,D:\utilsrad10\UTILS\CBtoDEL.pas=D:\utilsrad10\UTILS\CBtoDELunit.pas</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.997,=D:\utilsrad10\UTILS\dgridedit.pas</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.027,=D:\utilsrad10\UTILS\define.pas</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.225,D:\utilsrad10\UTILS\CBtoDEL.pas=C:\Users\sine\Documents\Embarcadero\Studio\Projects\Unit8.pas</Transaction>
     <Transaction>1899/12/30 00:00:00.000.607,=C:\Users\sine\Documents\Embarcadero\Studio\Projects\Unit8.pas</Transaction>
     <Transaction>1899/12/30 00:00:00.000.705,=C:\Users\sine\Documents\Embarcadero\Studio\Projects\Unit8.pas</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.658,D:\utilsrad10\UTILS\ExGrid.pas=</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.191,D:\utilsrad10\UTILS\CBtoDEL.dproj=C:\Users\sine\Documents\Embarcadero\Studio\Projects\Project7.dproj</Transaction>
     <Transaction>1899/12/30 00:00:00.000.754,=D:\utilsrad10\UTILS\utild.pas</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.997,=D:\utilsrad10\UTILS\dgridedit.pas</Transaction>
     <Transaction>1899/12/30 00:00:00.000.349,D:\utilsrad10\UTILS\dgridedit.pas=</Transaction>
     <Transaction>1899/12/30 00:00:00.000.064,=D:\utilsrad10\UTILS\ExGrid.pas</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.191,C:\Users\sine\Documents\Embarcadero\Studio\Projects\Project7.dproj=D:\utilsrad10\UTILS\CBtoDEL.dproj</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.225,C:\Users\sine\Documents\Embarcadero\Studio\Projects\Unit8.dfm=D:\utilsrad10\UTILS\CBtoDEL.dfm</Transaction>
     <Transaction>1899/12/30 00:00:00.000.477,=D:\utilsrad10\UTILS\stagdef.pas</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.260,D:\utilsrad10\UTILS\stagdef.pas=</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.027,=D:\utilsrad10\UTILS\define.pas</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.225,C:\Users\sine\Documents\Embarcadero\Studio\Projects\Unit8.pas=D:\utilsrad10\UTILS\CBtoDEL.pas</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.338,D:\utilsrad10\UTILS\CBtoDELunit.pas=D:\utilsrad10\UTILS\CBtoDEL.pas</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.658,D:\utilsrad10\UTILS\ExGrid.pas=</Transaction>
     <Transaction>1899/12/30 00:00:00.000.691,=D:\utilsrad10\UTILS\dgridlib.pas</Transaction>
-    <Transaction>1899/12/30 00:00:00.000.338,D:\utilsrad10\UTILS\CBtoDEL.dfm=D:\utilsrad10\UTILS\CBtoDELunit.dfm</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.225,D:\utilsrad10\UTILS\CBtoDEL.dfm=C:\Users\sine\Documents\Embarcadero\Studio\Projects\Unit8.dfm</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.260,D:\utilsrad10\UTILS\stagdef.pas=</Transaction>
+    <Transaction>1899/12/30 00:00:00.000.338,D:\utilsrad10\UTILS\CBtoDELunit.dfm=D:\utilsrad10\UTILS\CBtoDEL.dfm</Transaction>
   </Transactions>
 </BorlandProject>

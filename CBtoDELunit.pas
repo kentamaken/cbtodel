@@ -174,8 +174,8 @@ type
     ButtonOk: TButton;
     EditVarBlock: TEdit;
     Label3: TLabel;
-    c01: TMenuItem;
-    o01: TMenuItem;
+	c01: TMenuItem;
+	o01: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -199,6 +199,7 @@ type
 	private
 	public
 	   inidir:String;
+		function statements(breakchar:string):TSymbol;
 	end;
 
 function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
@@ -206,8 +207,31 @@ function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
 var
 	FormCBtoDEL:TFormCBtoDEL;
 	Src        :String;
- lineblock:TStringDynArray;
-varblock:TStringDynArray;
+	lineblock:TStringDynArray;
+	varblock:TStringDynArray;
+	xs,ys,xw,yw:Integer;
+	line,pline :Integer;
+	b          :TButton;
+	p          :pchar;
+	pp         :pchar;
+	dsrc       :STRING;
+	s          :STRING;
+	ss         :STRING;
+	sss        :STRING;
+	symtyp    :TSymbolType;
+	modecell   :boolean;
+	modesheet  :boolean;
+	col,row    :Integer;
+	indent     :Integer;
+	ia         :TIntArray;
+//	StrArray   :TArray<string>;
+//	symArray   :TArray<TSymbol>;
+	come       :STRING;
+	dstt       :TSymbol;
+	str        :STRING;
+	varstr :STRING;      //変数宣言をためる
+	conststr: string;    //定数宣言をためる
+	宣言ブロック:boolean;
 
 implementation
 
@@ -229,12 +253,12 @@ const
 var PCol, PRow: Integer;
 
 
-   Ini: TIniFile;
+	Ini: TIniFile;
 	filename:string;
 	txtfile:string;
 	csvfile:string;
 
-		regmatchstr:TStringDynArray;
+	regmatchstr:TStringDynArray;
 
 
 function TStringSelf.this:TStringList;
@@ -306,572 +330,611 @@ end;
 
 
 
-procedure TFormCBtoDEL.MConvClick(Sender: TObject);
+function indenttab:string;
+begin
+	result:=StringOfChar(TAB,indent);
+end;
+
+function indenttabplus:string;
+begin
+	inc(indent);
+	result:=StringOfChar(TAB,indent);
+end;
+
+function indentstr(s:string):string;
+begin
+	result:=indenttab+s;
+end;
+
+function indentcr:string;
+begin
+	result:=CRLF+indenttab;
+end;
+
+function existstr(s,a,b:string):string;
+begin
+	if s<>'' then result:=a+s+b;
+end;
+
+function TFormCBtoDEL.statements(breakchar:string):TSymbol;
 var
-	i,j        :Integer;
-	xs,ys,xw,yw:Integer;
-	line,pline :Integer;
-	b          :TButton;
-	p          :pchar;
-	pp         :pchar;
-	Src        :STRING;
-	dsrc       :STRING;
-	s          :STRING;
-	ss         :STRING;
-	sss        :STRING;
-	symType    :TSymbolType;
-	modecell   :boolean;
-	modesheet  :boolean;
-	col,row    :Integer;
-	indent     :Integer;
-	ia         :TIntArray;
-	StrArray   :TArray<string>;
-	symArray   :TArray<TSymbol>;
-	come       :STRING;
-	dstt       :TSymbol;
-	str        :STRING;
-	varstr :STRING;      //変数宣言をためる
-	conststr: string;    //定数宣言をためる
-	宣言ブロック:boolean;
+	sym :TSymbol;
+	syms:TSymbols;
+	psym:PSymbol;
+	s宣言ブロック:boolean;
+	イフ:boolean;
 
-	function indenttab:string;
-	begin
-		result:=StringOfChar(TAB,indent);
-	end;
-
-	function indenttabplus:string;
-	begin
-		inc(indent);
-		result:=StringOfChar(TAB,indent);
-	end;
-
-	function indentstr(s:string):string;
-	begin
-		result:=indenttab+s;
-	end;
-
-	function indentcr:string;
-	begin
-		result:=CRLF+indenttab;
-	end;
-
-	function existstr(s,a,b:string):string;
-	begin
-		if s<>'' then result:=a+s+b;
-	end;
-
-	function statements(breakchar:string):TSymbol;
+	function symbol:TSymbol;
 	var
-		sym :TSymbol;
-		syms:TSymbols;
-		s宣言ブロック:boolean;
-		イフ:boolean;
-
-		function symbol:TSymbol;
-		var
-			t:TSymbolType;
-			s:string;
-			ret:string;
-			buf        : array [0..1024] of CHAR;
-			procedure get;
-			begin
-				pp:=p;
-				t:=symget(p,buf,'''');
-				s:=buf;
-				if s='const' then t:=symQualifier;
+		t:TSymbolType;
+		s:string;
+		ret:string;
+		buf        : array [0..1024] of CHAR;
+		procedure get;
+		begin
+			pp:=p;
+			t:=symget(p,buf,'''');
+			s:=buf;
+			if s='const' then t:=symQualifier;
 //				if s='&' then t:=symQualifier else
 //				if s='*' then t:=symQualifier ;
-			end;
-			procedure ifadd(tt:TSymbolType);
-			begin
-				if t<>tt then exit;
-				ret:=s;
-				get;
-				ret:=ret+' '+s;
-			end;
-			procedure add(tt:TSymbolType);
-			begin
-				if t<>tt then exit;
-				ret:=s;
-				repeat
-					if ret='' then ret:=s else ret:=ret+' '+s;
-					get;
-				until t<>tt;
-				p:=pp;
-				t:=tt;
-			end;
+		end;
+		procedure ifadd(tt:TSymbolType);
 		begin
-			get;
+			if t<>tt then exit;
 			ret:=s;
-//			ifadd(symQualifier);
-			str:=ret;
-			result.typ:=t;
-			result.str:=ret;
-			result.src:=ret;
+			get;
+			ret:=ret+' '+s;
 		end;
-
-		procedure symback;
+		procedure add(tt:TSymbolType);
 		begin
+			if t<>tt then exit;
+			ret:=s;
+			repeat
+				if ret='' then ret:=s else ret:=ret+' '+s;
+				get;
+			until t<>tt;
 			p:=pp;
+			t:=tt;
+		end;
+	begin
+		get;
+		ret:=s;
+//			ifadd(symQualifier);
+		str:=ret;
+		result.typ:=t;
+		result.str:=ret;
+		result.src:=ret;
+	end;
+
+	procedure symback;
+	begin
+		p:=pp;
+	end;
+
+	procedure symnext;
+	begin
+		sym:=symbol;
+		psym:=syms.last;
+	end;
+
+
+	function reconstruct:string;
+	var
+		sym :TSymbol;
+		stype :TSymbolType;
+		dstt:STRING;
+		strc:STRING;
+		ssrc:STRING;
+		param:TStringDynArray;
+		pcnt1:integer;
+		pcnt2:integer;
+		pcnt3:integer;
+		valname:STRING;
+		valvar:STRING;
+		i:integer;
+		pos:integer;
+		posstart:integer;
+		bindent:integer;
+
+		function gets(i:integer):string;   //
+		begin
+			result:=syms[i].str+syms[i].cmt;
 		end;
 
-		function reconstruct:string;
-		var
-			sym :TSymbol;
-			stype :TSymbolType;
-			dstt:STRING;
-			strc:STRING;
-			ssrc:STRING;
-			param:TStringDynArray;
-			pcnt1:integer;
-			pcnt2:integer;
-			pcnt3:integer;
-			valname:STRING;
-			valvar:STRING;
-			i:integer;
-			pos:integer;
-			posstart:integer;
-			bindent:integer;
+		function getstr(i:integer):string;   //
+		begin
+			result:=syms[posstart+i].str+syms[posstart+i].cmt;
+		end;
+		function getsrc(i:integer):string;   //
+		begin
+			result:=syms[posstart+i].src+syms[posstart+i].cmt;
+		end;
 
-			function gets(i:integer):string;   //
-			begin
-				result:=syms[i].str+syms[i].cmt;
-			end;
+		function get(i:integer):string;   //
+		begin
+			inc(i,posstart);
+			if syms[i].typ=symCBlock then begin
+				result:='begin'+CRLF+gets(i)+'end';
+				if not イフ then result:=result+';';
 
-			function getstr(i:integer):string;   //
-			begin
-				result:=syms[posstart+i].str+syms[posstart+i].cmt;
-			end;
-			function getsrc(i:integer):string;   //
-			begin
-				result:=syms[posstart+i].src+syms[posstart+i].cmt;
-			end;
+			end else if syms[i].typ=symKBlock then
+				result:=' ( '+syms[i].str+' ) '+syms[i].cmt
+			else
+				result:=syms[i].convstr+syms[i].cmt;
+		end;
 
-			function get(i:integer):string;   //
-			begin
-				inc(i,posstart);
-				if syms[i].typ=symCBlock then begin
-					result:='begin'+CRLF+gets(i)+'end';
-					if not イフ then result:=result+';';
+		function incget(i:integer):string;   //一つ読んで進む
+		begin
+			result:=get(i);
+			inc(pos);
+		end;
 
-				end else if syms[i].typ=symKBlock then
-					result:=' ( '+syms[i].str+' ) '+syms[i].cmt
-				else
-					result:=syms[i].convstr+syms[i].cmt;
-			end;
+		function incgetval(i:integer):string;   //一つ読んで進むブロック
+		begin
+			result:=syms[posstart+i].str;
+			valname:=result;
+			inc(pos);
+		end;
 
-			function incget(i:integer):string;   //一つ読んで進む
-			begin
-				result:=get(i);
-				inc(pos);
-			end;
-
-			function incgetval(i:integer):string;   //一つ読んで進むブロック
-			begin
-				result:=syms[posstart+i].str;
-				valname:=result;
-				inc(pos);
-			end;
-
-			function incgetsrc(i:integer):string;   //一つ読んで進むブロック
-			begin
-				result:=syms[posstart+i].str;
-				inc(pos);
-			end;
+		function incgetsrc(i:integer):string;   //一つ読んで進むブロック
+		begin
+			result:=syms[posstart+i].str;
+			inc(pos);
+		end;
 
 
 
-			function cat(pos:integer):string;   //最後までくっつける 最後の；なし
-			var i:integer;
-			begin
-				result:='';
-				for i:=posstart+pos to syms.hi do begin
+		function cat(pos:integer):string;   //最後までくっつける 最後の；なし
+		var i:integer;
+		begin
+			result:='';
+			for i:=posstart+pos to syms.hi do begin
 //					if (i=syms.hi)and(syms[i].str=';') then break;
 
-					if result<>'' then result:=result+' ';
-					result:=result+get(i-posstart);
-				end;
+				if result<>'' then result:=result+' ';
+				result:=result+get(i-posstart);
+			end;
 //				result:=dtrimstring(result,' ;');
-				result:=result.trimright([' ',';']);
+			result:=result.trimright([' ',';']);
+		end;
+
+
+
+
+		function inccat:string;   //最後までくっつける
+		begin
+			while pos<=syms.hi do begin
+				if result<>'' then result:=result+' ';
+				result:=result+incget(pos-posstart);
+			end;
+		end;
+
+		function sis(a:string):integer;
+		begin
+			if trim(a)='' then exit(0);
+			result:=syms.structureisstr(posstart,SplitString(a,'｜'));
+		end;
+
+
+		function replacegrid(var ret:string;var stype :TSymbolType):boolean;
+		var c,r:integer;
+		var par:string;
+		var para:TStringDynArray;
+		var rep,rep2:string;
+		var vrv:string;
+		var con:string;
+		var s:string;
+		var ns:string;
+		const a=1;
+		var b:integer;
+		i:integer;
+		var subc:integer;
+		var subd:string;
+		var subs:string;
+		var subr:string;
+		var inccnt:integer;
+
+
+			procedure replace(var rep:string);
+			var rc:integer;
+			var c:integer;
+			var rm:integer;
+			var ri:integer;
+			var rs:string;
+			var rsd:string;
+			regmtc: TMatchCollection;
+			regmt: TMatch;
+			regg: TGroup;
+
+			function dele:boolean;
+			begin
+				if regmt.Value.indexof(s)<>0 then exit(false);
+				result:=true;
+			end;
+
+			function setrs(const s,v:string):boolean;
+			begin
+				if regmt.Value.indexof(s)<>0 then exit(false);
+				rs:=v;
+				result:=true;
+			end;
+
+			begin
+				regmtc:=TRegEx.Matches(rep,'%[a-zA-Z0-9\+]*%');
+				rm:=0;
+				rs:='';
+				for rc:=0 to regmtc.Count-1 do begin
+					regmt:=regmtc[rc];
+					c:=dval(regmt.Value)-1;
+					ri:=regmt.Index-1+rm;
+					rsd:=rep.SubString(ri);
+					if setrs('%CR%',CRLF) then else
+					if setrs('%E%',indenttab+'end;') then else
+					if setrs('%t%',TAB) then else
+					if setrs('%i%',indenttab) then else
+					if setrs('%i+%',indenttabplus) then else
+					if setrs('%d%','') then
+						rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
+					if setrs('%x',regmatchstr.item(c+1)) then else
+					if setrs('%c',cat(c)) then pos:=syms.count else
+					if setrs('%o',getstr(c)) then else
+					if setrs('%s',getsrc(c)) then else
+						setrs('%',get(c));
+
+					rep:=rep.remove(ri,regmt.Length).insert(ri,rs);
+					rm:=rm-regmt.Length+rs.length;
+					if pos=syms.count then break;
+				end;
 			end;
 
 
+		begin
+			result:=false;
+			for r := 1 to
 
+			CG.RowCount do begin
+				par:= CG.cells[1,r];
+				para:=SplitString(par,'｜');
+				rep:= CG.cells[2,r];
+				vrv:= CG.cells[3,r];
+				inccnt:=sis(par);
+				if inccnt>0 then begin
+					if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 
-			function inccat:string;   //最後までくっつける
-			begin
-				while pos<=syms.hi do begin
-					if result<>'' then result:=result+' ';
-					result:=result+incget(pos-posstart);
-				end;
-			end;
+					replace(vrv);
+					replace(rep);
+					inc(pos,inccnt);
 
-			function sis(a:string):integer;
-			begin
-				if trim(a)='' then exit(0);
-				result:=syms.structureisstr(posstart,SplitString(a,'｜'));
-			end;
-
-
-			function replacegrid(var ret:string;var stype :TSymbolType):boolean;
-			var c,r:integer;
-			var par:string;
-			var para:TStringDynArray;
-			var rep,rep2:string;
-			var vrv:string;
-			var con:string;
-			var s:string;
-			var ns:string;
-			const a=1;
-			var b:integer;
-			i:integer;
-			var subc:integer;
-			var subd:string;
-			var subs:string;
-			var subr:string;
-			var inccnt:integer;
-
-
-				procedure replace(var rep:string);
-				var rc:integer;
-				var c:integer;
-				var rm:integer;
-				var ri:integer;
-				var rs:string;
-				var rsd:string;
-				regmtc: TMatchCollection;
-				regmt: TMatch;
-				regg: TGroup;
-
-				function dele:boolean;
-				begin
-					if regmt.Value.indexof(s)<>0 then exit(false);
-					result:=true;
-				end;
-
-				function setrs(const s,v:string):boolean;
-				begin
-					if regmt.Value.indexof(s)<>0 then exit(false);
-					rs:=v;
-					result:=true;
-				end;
-
-				begin
-					regmtc:=TRegEx.Matches(rep,'%[a-zA-Z0-9\+]*%');
-					rm:=0;
-					rs:='';
-					for rc:=0 to regmtc.Count-1 do begin
-						regmt:=regmtc[rc];
-						c:=dval(regmt.Value)-1;
-						ri:=regmt.Index-1+rm;
-						rsd:=rep.SubString(ri);
-						if setrs('%CR%',CRLF) then else
-						if setrs('%E%',indenttab+'end;') then else
-						if setrs('%t%',TAB) then else
-						if setrs('%i%',indenttab) then else
-						if setrs('%i+%',indenttabplus) then else
-						if setrs('%d%','') then
-							rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
-						if setrs('%x',regmatchstr.item(c+1)) then else
-						if setrs('%c',cat(c)) then pos:=syms.count else
-						if setrs('%o',getstr(c)) then else
-						if setrs('%s',getsrc(c)) then else
-							setrs('%',get(c));
-
-						rep:=rep.remove(ri,regmt.Length).insert(ri,rs);
-						rm:=rm-regmt.Length+rs.length;
-						if pos=syms.count then break;
-					end;
-				end;
-
-
-			begin
-				result:=false;
-				for r := 1 to CG.RowCount do begin
-					par:= CG.cells[1,r];
-					para:=SplitString(par,'｜');
-					rep:= CG.cells[2,r];
-					vrv:= CG.cells[3,r];
-					inccnt:=sis(par);
-					if inccnt>0 then begin
-						if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
-
-						replace(vrv);
-						replace(rep);
-						inc(pos,inccnt);
-
-						if 宣言ブロック then begin
-						end else begin
-							if vrv.IndexOf('var')>0 then begin
-								varstr:=vrv+CRLF;
-							end;
+					if 宣言ブロック then begin
+					end else begin
+						if vrv.IndexOf('var')>0 then begin
+							varstr:=vrv+CRLF;
 						end;
+					end;
 //						if rep='' then begin
 //							stype:=symVar;//追加無し
 //							inc(pos); //;を飛ばす
 //						end;
-						ret:=rep;
-						exit(true);
-					end;
+					ret:=rep;
+					exit(true);
 				end;
-			end;
-
-		begin
-			dstt:='';
-			come:='';
-			strc:=syms.structure;
-			ssrc:=syms.source;
-			ssrc:=StringReplace(ssrc,CRLF,'',[rfReplaceAll]);
-			ssrc:=StringReplace(ssrc,TAB,'',[rfReplaceAll]);
-			if MLSource.Checked then LOG.Lines.add(indentstr(ssrc));
-			if MLStruct.Checked then LOG.Lines.add(indentstr(strc));
-			pos:=0;
-			bindent:=indent;
-			//ブロックに変換前を保存して再構成できるようにする
-			try
-			for i := 0 to syms.hi do begin
-				if i<pos then continue;
-				pos:=i;
-				sym:=syms[i];
-				s:=sym.convstr;
-				if s=CRLF then begin
-					posstart:=pos;
-					continue;
-				end;
-				posstart:=pos;
-
-				stype:=symVoid;
-				valname:='';
-				s:='';
-
-				if replacegrid(s,stype) then begin
-					stype:=stype;
-				end else
-				if sis('(*)')>0 then begin //
-					s:=incget(0);
-				end else
-				if sis('{*}')>0 then begin //
-
-					s:=incget(0);
-					s:=s+';';
-					if varstr<>'' then begin
-						s:=indenttab+varstr+s;
-						varstr:='';
-					end;
-				end else begin
-					s:=incget(0);
-				end;
-
-
-
-				if stype=symVar then else
-				if stype=symFunction then dstt:=dstt+s+';'+CRLF else
-				if stype=symLabel then dstt:=dstt+s else
-					dstt:=dstt+s+' ';
-			end;
-			except
-//				dmessage(strc);
-			end;
-
-
-
-			for sym in syms.items do begin
-			end;
-			indent:=bindent;
-
-			result:=dstt;
-		end;
-
-		function kakko:Integer;
-		var
-			sym :TSymbol;
-			dstt:STRING;
-		begin
-			sym.typ:=symKBlock;
-			while (p[0]<>#0) do begin
-				sym.add(statements(')'));
-				if str=';' then sym.addstr(' ');
-				if str=')' then break;
-				sym.str:=sym.str;
-			end;
-			syms.add(sym);
-		end;
-
-		procedure addsub;
-			procedure andor;
-				procedure nott;
-					procedure compare;
-						procedure addsub;
-							procedure muldiv;
-								procedure factor;
-								begin
-								end;
-							begin
-								factor;
-							end;
-						begin
-							muldiv;
-						end;
-					begin
-						addsub;
-					end;
-				begin
-					compare;
-				end;
-			begin
-				nott;
-			end;
-		begin
-			andor;
-		end;
-
-		function hkakko:TSymbol;
-		var ret :TSymbol;
-			del :TSymbol;
-			sym :TSymbol;
-		begin
-//			sym.typ:=symKBlock;
-			del.src:='][';
-			del.str:=', ';
-			result.addstr('[');
-			while (p[0]<>#0)and(str='[') do begin
-				if result.src<>'[' then result.add(del);
-
-				result.add(statements(']'));
-				if str=']' then
-					sym:=symbol;
-			end;
-			symback;
-			result.addstr(']');
-
-//			str:=' [ '+s+'] ';
-		end;
-
-		function ckakko:Integer;
-		var
-			sym :TSymbol;
-			dstt:TSymbol;
-		begin
-			inc(indent);
-			varstr:='';
-			sym.typ:=symCBlock;
-			while (p[0]<>#0) do begin
-				dstt:=statements('}');
-				sym.src:=sym.src+dstt.src;
-				if dstt.str<>'' then begin
-					sym.str                 :=sym.str+indenttab+dstt.str;//+';';
-					if come<>'' then sym.str:=sym.str+TAB+'// '+come;
-					sym.str                 :=sym.str+CRLF;
-				end;
-				if str='}' then break;
-			end;
-
-			syms.add(sym);
-			dec(indent);
-		end;
-
-		function statement:Integer;
-		var
-			sym:TSymbol;
-			psym:PSymbol;
-			改行まで:boolean;
-			s:string;
-		begin
-			改行まで:=false;
-			イフ:=false;
-			while (p[0]<>#0) do begin
-				sym:=symbol;
-				psym:=syms.last;
-
-				if sym.typ=symComment then begin
-//					if syms.count>0 then //前の要素に足す
-					dsrc:=dsrc+sym.str;
-					if pline=line then begin
-						//psym.cmt:=sym.str+CRLF;
-						continue;
-					end;
-					continue;
-				end;
-				if sym.str='[' then begin
-					syms.last.add(hkakko);
-					continue;
-				end;
-				if sym.convstr='.' then begin
-					sym.str:=sym.convstr;
-					syms.last.add(sym);
-					sym:=symbol;
-					syms.last.add(sym);
-					continue;
-				end;
-
-				if str='if' then begin
-					イフ:=true;
-
-				end else if MatchStr(str,lineblock) then begin
-					改行まで:=true;
-
-				end else if MatchStr(str,varblock) then begin
-					宣言ブロック:=true;
-
-				end;
-
-				if str=CRLF then begin
-					pline:=line;
-					inc(line);
-//psym.cmt:=psym.cmt+CRLF;
-//					dsrc:=dsrc+CRLF;
-					if 改行まで then begin
-						break;
-					end;
-					continue;
-				end else if str='(' then begin
-					kakko;
-					continue;
-				end else if str='{' then begin
-					ckakko;
-//					continue;
-					sym:=symbol;
-					//if str<>'while' then //{}while
-					//	break;//{}ブロックは繋げたくない
-				end else if str=breakchar then
-					break;
-
-
-				sym.str:=str;
-				syms.add(sym);
-
-				if not 改行まで then begin
-					if str=';' then begin
-						if not イフ then break;
-						sym:=symbol;
-						if sym.str='else' then begin
-							syms.last^:=sym;
-							continue;
-						end;
-						symback;
-						break;
-
-					end else if str=':' then begin
-
-						if psym.typ=symKBlock then continue;    //前カッコはメンバ初期化初期化
-						if 宣言ブロック then continue;//label:
-						break;
-					end;
-				end;
-
-
 			end;
 		end;
 
 	begin
-		s宣言ブロック:=宣言ブロック;
-		syms.null.clear;
-		statement;
-		result.src:=syms.source;
-		result.str:=trim(reconstruct);
-		宣言ブロック:=s宣言ブロック;
+		dstt:='';
+		come:='';
+		strc:=syms.structure;
+		ssrc:=syms.source;
+		ssrc:=StringReplace(ssrc,CRLF,'',[rfReplaceAll]);
+		ssrc:=StringReplace(ssrc,TAB,'',[rfReplaceAll]);
+		if MLSource.Checked then LOG.Lines.add(indentstr(ssrc));
+		if MLStruct.Checked then LOG.Lines.add(indentstr(strc));
+		pos:=0;
+		bindent:=indent;
+		//ブロックに変換前を保存して再構成できるようにする
+		try
+		for i := 0 to syms.hi do begin
+			if i<pos then continue;
+			pos:=i;
+			sym:=syms[i];
+			s:=sym.convstr;
+			if s=CRLF then begin
+				posstart:=pos;
+				continue;
+			end;
+			posstart:=pos;
+
+			stype:=symVoid;
+			valname:='';
+			s:='';
+
+			if replacegrid(s,stype) then begin
+				stype:=stype;
+			end else
+			if sis('(*)')>0 then begin //
+				s:=incget(0);
+			end else
+			if sis('{*}')>0 then begin //
+
+				s:=incget(0);
+				s:=s+';';
+				if varstr<>'' then begin
+					s:=indenttab+varstr+s;
+					varstr:='';
+				end;
+			end else begin
+				s:=incget(0);
+			end;
+
+
+
+			if stype=symVar then else
+			if stype=symFunction then dstt:=dstt+s+';'+CRLF else
+			if stype=symLabel then dstt:=dstt+s else
+				dstt:=dstt+s+' ';
+		end;
+		except
+//				dmessage(strc);
+		end;
+
+
+
+		for sym in syms.items do begin
+		end;
+		indent:=bindent;
+
+		result:=dstt;
 	end;
 
+	function kakko:Integer;
+	var
+		sym :TSymbol;
+		dstt:STRING;
+	begin
+		sym.typ:=symKBlock;
+		while (p[0]<>#0) do begin
+			sym.add(statements(')'));
+			if str=';' then sym.addstr(' ');
+			if str=')' then break;
+			sym.str:=sym.str;
+		end;
+		syms.add(sym);
+	end;
+
+	procedure eq;
+	var
+		ssym: tsymbol;
+
+		procedure addsub;
+		var
+			ssym: tsymbol;
+
+			procedure andor;
+			var
+				ssym: tsymbol;
+
+				procedure nott;
+				var
+					ssym: tsymbol;
+
+					procedure compare;
+					var
+						ssym: tsymbol;
+
+							procedure muldiv;
+							var
+								ssym: tsymbol;
+
+								procedure factor;
+								var
+									ssym: tsymbol;
+								begin
+									if sym.str.contains ['', ''] then begin
+									end;
+								end;
+
+							begin
+								factor;
+								if sym.str in ['*', '/', '%'] then begin
+									factor;
+								end;
+							end;
+
+
+					begin
+						addsub;
+						if sym.str in ['==', '!=', '<', '>', '>=', '<='] then begin
+							addsub;
+						end;
+					end;
+
+				begin
+					compare;
+					if sym.str in ['!'] then begin
+						compare;
+					end;
+				end;
+
+			begin
+				nott;
+				if sym.str in ['&&', '||'] then begin
+					nott;
+				end;
+			end;
+
+		begin
+			andor;
+			if sym.str in ['+', '-'] then begin
+				andor;
+			end;
+
+		end;
+
+	begin
+
+		addsub;
+		syms.add(sym);
+		bsym:=sym;
+		symnext;
+		if sym.str='=' then begin
+			addsub;
+		end;
+	end;
+
+	function hkakko:TSymbol;
+	var ret :TSymbol;
+		del :TSymbol;
+		sym :TSymbol;
+	begin
+//			sym.typ:=symKBlock;
+		del.src:='][';
+		del.str:=', ';
+		result.addstr('[');
+		while (p[0]<>#0)and(str='[') do begin
+			if result.src<>'[' then result.add(del);
+
+			result.add(statements(']'));
+			if str=']' then
+				sym:=symbol;
+		end;
+		symback;
+		result.addstr(']');
+
+//			str:=' [ '+s+'] ';
+	end;
+
+	function ckakko:Integer;
+	var
+		sym :TSymbol;
+		dstt:TSymbol;
+	begin
+		inc(indent);
+		varstr:='';
+		sym.typ:=symCBlock;
+		while (p[0]<>#0) do begin
+			dstt:=statements('}');
+			sym.src:=sym.src+dstt.src;
+			if dstt.str<>'' then begin
+				sym.str                 :=sym.str+indenttab+dstt.str;//+';';
+				if come<>'' then sym.str:=sym.str+TAB+'// '+come;
+				sym.str                 :=sym.str+CRLF;
+			end;
+			if str='}' then break;
+		end;
+
+		syms.add(sym);
+		dec(indent);
+	end;
+
+	function statement:Integer;
+	var
+		改行まで:boolean;
+		s:string;
+	begin
+		改行まで:=false;
+		イフ:=false;
+		while (p[0]<>#0) do begin
+			symnext;
+
+			if sym.typ=symComment then begin
+//					if syms.count>0 then //前の要素に足す
+				dsrc:=dsrc+sym.str;
+				if pline=line then begin
+					//psym.cmt:=sym.str+CRLF;
+					continue;
+				end;
+				continue;
+			end;
+			if sym.str='[' then begin
+				syms.last.add(hkakko);
+				continue;
+			end;
+			if sym.convstr='.' then begin
+				sym.str:=sym.convstr;
+				syms.last.add(sym);
+				sym:=symbol;
+				syms.last.add(sym);
+				continue;
+			end;
+
+			if sym.typ=symOperator then begin
+
+			end;
+
+			if str='if' then begin
+				イフ:=true;
+
+			end else if MatchStr(str,lineblock) then begin
+				改行まで:=true;
+
+			end else if MatchStr(str,varblock) then begin
+				宣言ブロック:=true;
+
+			end;
+
+			if str=CRLF then begin
+				pline:=line;
+				inc(line);
+//psym.cmt:=psym.cmt+CRLF;
+//					dsrc:=dsrc+CRLF;
+				if 改行まで then begin
+					break;
+				end;
+				continue;
+			end else if str='(' then begin
+				kakko;
+				continue;
+			end else if str='{' then begin
+				ckakko;
+//					continue;
+				sym:=symbol;
+				//if str<>'while' then //{}while
+				//	break;//{}ブロックは繋げたくない
+			end else if str=breakchar then
+				break;
+
+
+			sym.str:=str;
+			syms.add(sym);
+
+			if not 改行まで then begin
+				if str=';' then begin
+					if not イフ then break;
+					sym:=symbol;
+					if sym.str='else' then begin
+						syms.last^:=sym;
+						continue;
+					end;
+					symback;
+					break;
+
+				end else if str=':' then begin
+
+					if psym.typ=symKBlock then continue;    //前カッコはメンバ初期化初期化
+					if 宣言ブロック then continue;//label:
+					break;
+				end;
+			end;
+
+
+		end;
+	end;
+
+begin
+	s宣言ブロック:=宣言ブロック;
+	syms.null.clear;
+	statement;
+	result.src:=syms.source;
+	result.str:=trim(reconstruct);
+	宣言ブロック:=s宣言ブロック;
+end;
+
+
+procedure TFormCBtoDEL.MConvClick(Sender: TObject);
+var
+	i,j        :Integer;
 begin
 	LOG.Clear;
 //	int l=E->Perform(EM_LINEFROMCHAR,-1,0)+1;
@@ -1329,7 +1392,7 @@ function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
 var
 	i,n    :Integer;
 	prechr :CHAR;
-	symType:TSymbolType;
+	typ:TSymbolType;
 label getsymerror;
 	function addchr(c:CHAR):boolean;
 	begin
@@ -1352,14 +1415,14 @@ label getsymerror;
 		str[n]:=pos[0];
 		inc(n);
 		inc(pos);
-		symType:=t;
+		symtyp:=t;
 		result :=false;
 	end;
 	function isadd(s:PChar;t:TSymbolType):boolean;
 	begin
 		result:=(strlcomp(pos,s,Length(s))=0);
 		if not result then exit;
-		symType:=t;
+		symtyp:=t;
 		StrLCopy(str,s,Length(s));
 		inc(n,Length(s));
 		inc(pos,Length(s));
@@ -1368,7 +1431,7 @@ label getsymerror;
 	begin
 		result:=(strlcomp(pos,s,Length(s))=0);
 		if not result then exit;
-		symType:=t;
+		symtyp:=t;
 		str[n]:=#0;
 		StrLCat(str,s,Length(str)+Length(s));
 		inc(n,Length(s));
@@ -1378,8 +1441,8 @@ label getsymerror;
 
 begin
 	n                          :=0;
-	symType                    :=symVoid;
-	if (pos[0]=#0) then symType:=symDelimiter;
+	symtyp                    :=symVoid;
+	if (pos[0]=#0) then symtyp:=symDelimiter;
 
 	while ISSPACER(pos[0]) do inc(pos);
 
@@ -1387,7 +1450,7 @@ begin
 		if ISNUMBER(pos[0]) then begin
 			while ISNUMBER(pos[0]) do begin
 				if addchrinc then break;
-				symType:=symNumber;
+				symtyp:=symNumber;
 			end
 		end else if isadd('//',symComment) then begin
 			while (pos[0]<>#0) do begin
@@ -1426,7 +1489,7 @@ begin
 		end else if ISOPERATOR(pos[0]) then begin
 
 			if addchrinc then break;
-			symType:=symOperator;
+			symtyp:=symOperator;
 
 		end else if (pos[0]='''')or(pos[0]='"')or((pos[0]='L')and ((pos[1]='"')or(pos[1]=''''))) then begin
 				if (pos[0]='L') then inc(pos);
@@ -1457,13 +1520,13 @@ begin
 				if (pos[0]=strdeli) then begin
 					addchr('''');
 					inc(pos);
-					symType:=symString;
+					symtyp:=symString;
 				end
-				else symType:=symError;
+				else symtyp:=symError;
 
 		end else if ISDELIMITER(pos[0]) then begin
 
-			symType:=symDelimiter;
+			symtyp:=symDelimiter;
 			if (StrPos(pos,#13#10)=pos) then begin
 				if ((n+1)>=SYMMAXLEN) then break;
 				strmove(str,pos,2);
@@ -1486,18 +1549,18 @@ begin
 				if (n>=255) then break;
 				inc(pos);
 			end;
-			symType:=symReserved;
+			symtyp:=symReserved;
 		end;
 
 		if (n>=SYMMAXLEN) then break;
-		if (symType<>symVoid) then break;
+		if (symtyp<>symVoid) then break;
 		prechr:=pos[0];
 		inc(pos);
 	end;
 	//    while ISSPACER(pos[0]) do inc(pos);
 
 	str[n]:=#0;
-	result:=symType;
+	result:=symtyp;
 	exit;
 getsymerror:
 	str[0]:=#0;
