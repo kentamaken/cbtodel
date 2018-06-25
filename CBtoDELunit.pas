@@ -72,8 +72,8 @@ type
 		property item[Index:Integer]:TSymbol read get write put;default;
 
 		//	  function del(i:Integer): Integer;
-		//	  function ins(i:Integer): Integer;
-		//	  function move(i:Integer): Integer;
+		function ins(t:Integer;s:TSymbol): Integer;
+		function move(f,t:Integer): Integer;
 	private
 		function structureisstr(position:Integer;arg:TStringDynArray):Integer;
 	end;
@@ -133,7 +133,7 @@ type
 		CG: TStringGrid;
 	Splitter2: TSplitter;
 	MFolder: TMenuItem;
-    PopupMenu1: TPopupMenu;
+	PopupMenu1: TPopupMenu;
     PConv: TMenuItem;
 	PCut: TMenuItem;
 	PCopy: TMenuItem;
@@ -167,7 +167,7 @@ type
     MRowDup: TMenuItem;
 	MRowDel: TMenuItem;
 	MDvrow: TMenuItem;
-    MSet: TMenuItem;
+	MSet: TMenuItem;
     MFixed: TMenuItem;
     MLSource: TMenuItem;
     MLStruct: TMenuItem;
@@ -200,6 +200,7 @@ type
 	public
 	   inidir:String;
 		function statements(breakchar:string):TSymbol;
+
 	end;
 
 function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
@@ -363,8 +364,9 @@ var
 	psym:PSymbol;
 	s宣言ブロック:boolean;
 	イフ:boolean;
+	次へ:boolean;
 
-	function symbol:TSymbol;
+	function getsymbol:TSymbol;
 	var
 		t:TSymbolType;
 		s:string;
@@ -414,7 +416,7 @@ var
 
 	procedure symnext;
 	begin
-		sym:=symbol;
+		sym:=getsymbol;
 		psym:=syms.last;
 	end;
 
@@ -703,122 +705,167 @@ var
 		syms.add(sym);
 	end;
 
-	procedure eq;
-	var
+	function symbol(const str, src: string; typ: TSymbolType): TSymbol;
+	begin
+		result.str:=str;
+		result.src:=src;
+		result.typ:=typ;
+	end;
+
+	procedure 式;
+	var
 		ssym: tsymbol;
+		カッコ挿入位置:integer;
 
-		procedure addsub;
-		var
-			ssym: tsymbol;
+		procedure 論理和;
 
-			procedure andor;
-			var
-				ssym: tsymbol;
+			procedure 論理積;
 
-				procedure nott;
+				procedure 否定;
 				var
 					ssym: tsymbol;
 
-					procedure compare;
+					procedure 比較;
 					var
 						ssym: tsymbol;
 
-						procedure muldiv;
+						procedure 加算;
 						var
 							ssym: tsymbol;
 
-							procedure factor;
+							procedure 掛算;
 							var
-								ssym: tsymbol;
-							begin
-								if MatchText(sym.str, ['', '']) then
+								ssym: TSymbol;
+
+								procedure その他;
+								var
+									ssym: TSymbol;
 								begin
+									if MatchText(sym.str, ['+', '-']) then begin
+										syms.add(sym);
+										symnext;
+									end
+									else if MatchText(sym.str, ['(']) then begin
+										kakko;
+										次へ:=true;
+									end
+									else begin
+										//syms.add(sym);
+										//symnext;
+									end;
+								end;
+
+							begin
+								その他;
+								if MatchText(sym.str, ['*', '/', '%']) then begin
 									syms.add(sym);
+									symnext;
+									その他;
 								end;
 							end;
 
 						begin
-							factor;
-							if MatchText(sym.str, ['*', '/', '%']) then
-							begin
+							掛算;
+							if MatchText(sym.str, ['+', '-']) then begin
 								syms.add(sym);
 								symnext;
-								factor;
+								掛算;
 							end;
+
 						end;
 
 					begin
-						addsub;
-						if MatchText(sym.str, ['==', '!=', '<', '>', '>=', '<=']) then
-						begin
+						加算;
+						if MatchText(sym.str, ['==', '!=', '<', '>', '>=', '<=']) then begin
+
+							if カッコ挿入位置>=0 then
+								syms.ins(カッコ挿入位置,symbol('(', '(', symDelimiter))
+							else  begin
+								syms.ins(syms.hi-1,symbol('(', '(', symDelimiter));
+								カッコ挿入位置:=syms.hi;
+
+							end;
+
 							syms.add(sym);
 							symnext;
-							addsub;
+							syms.add(sym);
+							symnext;
+							syms.add(symbol(')', ')', symDelimiter));
+							加算;
+							次へ:=true;
 						end;
 					end;
 
 				begin
-					compare;
-					if MatchText(sym.str, ['!']) then
-					begin
+					比較;
+					if MatchText(sym.str, ['!']) then begin
 						syms.add(sym);
 						symnext;
-						compare;
+						比較;
 					end;
 				end;
 
 			begin
-				nott;
-				if MatchText(sym.str, ['&&', '||']) then
-				begin
+				否定;
+				if sym.str='&&' then begin
+					if カッコ挿入位置>=0 then
+						syms.ins(カッコ挿入位置,symbol('(', '(', symDelimiter))
+					else begin
+						syms.ins(syms.hi-1,symbol('(', '(', symDelimiter));
+						カッコ挿入位置:=syms.hi;
+					end;
+
 					syms.add(sym);
 					symnext;
-					nott;
+					syms.add(sym);
+					symnext;
+					syms.add(symbol(')', ')', symDelimiter));
+					否定;
+//					syms.add(sym);
+//					symnext;
 				end;
 			end;
 
 		begin
-			andor;
-			if MatchText(sym.str, ['+', '-']) then
-			begin
+			論理積;
+			if sym.str='||' then begin
 				syms.add(sym);
 				symnext;
-				andor;
+				論理積;
 			end;
-
 		end;
 
-	begin
-
-		addsub;
-//		bsym:=sym;
+	begin
+		カッコ挿入位置:=-1;
+		論理和;
+		//		bsym:=sym;
 		if sym.str='=' then begin
 			syms.add(sym);
 			symnext;
-			addsub;
+			論理和;
 		end;
 	end;
 
-	function hkakko:TSymbol;
-	var ret :TSymbol;
-		del :TSymbol;
-		sym :TSymbol;
+	function hkakko:TSymbol;
+	var
+		ret:TSymbol;
+		DEL:TSymbol;
+		sym:TSymbol;
 	begin
-//			sym.typ:=symKBlock;
-		del.src:='][';
-		del.str:=', ';
+		//			sym.typ:=symKBlock;
+		DEL.src:='][';
+		DEL.str:=', ';
 		result.addstr('[');
 		while (p[0]<>#0)and(str='[') do begin
-			if result.src<>'[' then result.add(del);
+			if result.src<>'[' then result.add(DEL);
 
 			result.add(statements(']'));
-			if str=']' then
-				sym:=symbol;
+			if str=']' then sym:=getsymbol;
 		end;
 		symback;
 		result.addstr(']');
 
-//			str:=' [ '+s+'] ';
+		//			str:=' [ '+s+'] ';
 	end;
 
 	function ckakko:Integer;
@@ -851,6 +898,7 @@ var
 	begin
 		改行まで:=false;
 		イフ:=false;
+		次へ:=false;
 		while (p[0]<>#0) do begin
 			symnext;
 
@@ -867,15 +915,19 @@ var
 				syms.last.add(hkakko);
 				continue;
 			end;
+
 			if sym.convstr='.' then begin
 				sym.str:=sym.convstr;
 				syms.last.add(sym);
-				sym:=symbol;
+				sym:=getsymbol;
 				syms.last.add(sym);
 				continue;
 			end;
 
-			if sym.typ=symOperator then begin
+			式;
+			if 次へ then continue;
+
+			if sym.typ=symOperator then begin
 
 			end;
 
@@ -905,7 +957,7 @@ var
 			end else if str='{' then begin
 				ckakko;
 //					continue;
-				sym:=symbol;
+				sym:=getsymbol;
 				//if str<>'while' then //{}while
 				//	break;//{}ブロックは繋げたくない
 			end else if str=breakchar then
@@ -918,7 +970,7 @@ var
 			if not 改行まで then begin
 				if str=';' then begin
 					if not イフ then break;
-					sym:=symbol;
+					sym:=getsymbol;
 					if sym.str='else' then begin
 						syms.last^:=sym;
 						continue;
@@ -946,6 +998,7 @@ begin
 	result.str:=trim(reconstruct);
 	宣言ブロック:=s宣言ブロック;
 end;
+
 
 
 procedure TFormCBtoDEL.MConvClick(Sender: TObject);
@@ -1178,9 +1231,22 @@ function TSymbols.count:Integer;
 begin
 	result:=Length(self.items);
 end;
+
 function TSymbols.hi:Integer;
 begin
 	result:=High(self.items);
+end;
+
+function TSymbols.ins(t: Integer; s: TSymbol): Integer;
+var i:integer;
+begin
+	if t<0 then t:=0;
+
+	add(null);
+	for i:=hi downto t+1 do
+		self.items[i]:=self.items[i-1];
+
+	self.items[t]:=s;
 end;
 
 function TSymbols.last: PSymbol;
@@ -1189,6 +1255,21 @@ begin
 	result:=@self.items[count-1];
 end;
 
+
+function TSymbols.move(f, t: Integer): Integer;
+var i:integer;
+	s:TSymbol;
+begin
+	s:=self.items[f];
+	if f>t then begin
+		for i:=f downto t+1 do
+			self.items[i]:=self.items[i-1];
+	end else begin
+		for i:=f to t-1 do
+			self.items[i]:=self.items[i+1];
+	end;
+	self.items[t]:=s;
+end;
 
 function TSymbols.getstring(Index:Integer):string;
 begin
@@ -2234,5 +2315,3 @@ end.
 //				result:=StringReplace(result,' , ',','+CRLF+indenttab+tab,[rfReplaceAll]);
 //			end;
 //
-
-
