@@ -363,6 +363,7 @@ object FormCBtoDEL: TFormCBtoDEL
     Top = 40
     object PConv: TMenuItem
       Caption = #22793#25563
+      ShortCut = 24643
       OnClick = MConvClick
     end
     object PCut: TMenuItem
@@ -466,6 +467,10 @@ object FormCBtoDEL: TFormCBtoDEL
     object MenuItem19: TMenuItem
       Caption = #24038
       OnClick = MenuItemGrid2Click
+    end
+    object N1: TMenuItem
+      Caption = #12467#12513#12531#12488
+      OnClick = N1Click
     end
   end
 end

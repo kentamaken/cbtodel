@@ -1,7 +1,9 @@
  ,“ü—Í,o—Í,éŒ¾
-if,ifb(*)b{*},if %2% then %c3% ;, 
-if,ifb(*),if %2% then%CR%%i+%, 
-if,–belse,%CR%else%CR%%i%, 
+if,ifb(*)b{*}belseb{*},if %s2% then begin%CR%%s3%end else begin %CR%%s5%end;, 
+if,ifb(*)b{*}belse,if %s2% then begin%CR%%s3%end else, 
+if,ifb(*)b{*},if %s2% then begin%CR%%s3%end;, 
+if,ifb(*),if %s2% then%CR%%i+%, 
+if,else,%CR%else%CR%%i%, 
 #define,#defineb•¶b(*)b‰E,function %s2% (  %s3% :variant ) : variant; begin exit ( %c4% ); %E%, 
 #define,#defineb•¶b‰E,%s2% = %c3%, 
 #define,#defineb•¶,&{define %s2%} , 
