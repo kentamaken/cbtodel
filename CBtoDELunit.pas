@@ -1,4 +1,4 @@
-ï»¿unit CBtoDELunit;
+unit CBtoDELunit;
 
 
 interface
@@ -232,9 +232,9 @@ var
 //	symArray   :TArray<TSymbol>;
 	come       :STRING;
 	str        :STRING;
-	varstr :STRING;      //å¤‰æ•°å®£è¨€ã‚’ãŸã‚ã‚‹
-	conststr: string;    //å®šæ•°å®£è¨€ã‚’ãŸã‚ã‚‹
-	å®£è¨€ãƒ–ãƒ­ãƒƒã‚¯:boolean;
+	varstr :STRING;      //•Ï”éŒ¾‚ğ‚½‚ß‚é
+	conststr: string;    //’è”éŒ¾‚ğ‚½‚ß‚é
+	éŒ¾ƒuƒƒbƒN:boolean;
 
 implementation
 
@@ -251,7 +251,7 @@ const
 	LF       =#10;
 	CRLF     =#13#10;
 	TAB      =#9;
-	CHEAD=',å…¥åŠ›,å‡ºåŠ›,å®£è¨€';
+	CHEAD=',“ü—Í,o—Í,éŒ¾';
 
 var PCol, PRow: Integer;
 
@@ -326,7 +326,7 @@ begin
 
 		break;
 	end;
-	if len=0 then exit; //ã™ã¹ã¦å‰Šé™¤æ–‡å­—
+	if len=0 then exit; //‚·‚×‚Äíœ•¶š
 	si:=1;
 	result:=Copy(S,si,len-si+1);
 end;
@@ -364,9 +364,9 @@ var
 	sym :TSymbol;
 	syms:TSymbols;
 	psym:PSymbol;
-	så®£è¨€ãƒ–ãƒ­ãƒƒã‚¯:boolean;
-	ã‚¤ãƒ•:boolean;
-	æ¬¡ã¸:boolean;
+	séŒ¾ƒuƒƒbƒN:boolean;
+	ƒCƒt:boolean;
+	Ÿ‚Ö:boolean;
 
 	function getsymbol:TSymbol;
 	var
@@ -460,7 +460,7 @@ var
 			inc(i,posstart);
 			if syms[i].typ=symCBlock then begin
 				result:=CRLF+'begin'+CRLF+gets(i)+'end';
-				if not ã‚¤ãƒ• then result:=result+';'+CRLF;
+				if not ƒCƒt then result:=result+';'+CRLF;
 
 			end else if syms[i].typ=symKBlock then
 				result:=' ( '+syms[i].str+' ) '+syms[i].cmt
@@ -468,20 +468,20 @@ var
 				result:=syms[i].convstr+syms[i].cmt;
 		end;
 
-		function incget(i:integer):string;   //ä¸€ã¤èª­ã‚“ã§é€²ã‚€
+		function incget(i:integer):string;   //ˆê‚Â“Ç‚ñ‚Åi‚Ş
 		begin
 			result:=get(i);
 			inc(pos);
 		end;
 
-		function incgetval(i:integer):string;   //ä¸€ã¤èª­ã‚“ã§é€²ã‚€ãƒ–ãƒ­ãƒƒã‚¯
+		function incgetval(i:integer):string;   //ˆê‚Â“Ç‚ñ‚Åi‚ŞƒuƒƒbƒN
 		begin
 			result:=syms[posstart+i].str;
 			valname:=result;
 			inc(pos);
 		end;
 
-		function incgetsrc(i:integer):string;   //ä¸€ã¤èª­ã‚“ã§é€²ã‚€ãƒ–ãƒ­ãƒƒã‚¯
+		function incgetsrc(i:integer):string;   //ˆê‚Â“Ç‚ñ‚Åi‚ŞƒuƒƒbƒN
 		begin
 			result:=syms[posstart+i].str;
 			inc(pos);
@@ -489,7 +489,7 @@ var
 
 
 
-		function cat(pos:integer):string;   //æœ€å¾Œã¾ã§ãã£ã¤ã‘ã‚‹ æœ€å¾Œã®ï¼›ãªã—
+		function cat(pos:integer):string;   //ÅŒã‚Ü‚Å‚­‚Á‚Â‚¯‚é ÅŒã‚ÌG‚È‚µ
 		var i:integer;
 		begin
 			result:='';
@@ -506,7 +506,7 @@ var
 
 
 
-		function inccat:string;   //æœ€å¾Œã¾ã§ãã£ã¤ã‘ã‚‹
+		function inccat:string;   //ÅŒã‚Ü‚Å‚­‚Á‚Â‚¯‚é
 		begin
 			while pos<=syms.hi do begin
 				if result<>'' then result:=result+' ';
@@ -517,7 +517,7 @@ var
 		function sis(a:string):integer;
 		begin
 			if trim(a)='' then exit(0);
-			result:=syms.structureisstr(posstart,SplitString(a,'ï½œ'));
+			result:=syms.structureisstr(posstart,SplitString(a,'b'));
 		end;
 
 
@@ -565,7 +565,7 @@ var
 			end;
 
 			begin
-				regmtc:=TRegEx.Matches(rep,'%[a-zA-Z0-9\+]*%');
+				regmtc:=TRegEx.Matches(rep,'%[a-zA-Z0-9]+(.?)([1-9]*)%');
 				rm:=0;
 				rs:='';
 				for rc:=0 to regmtc.Count-1 do begin
@@ -573,6 +573,12 @@ var
 					c:=dval(regmt.Value)-1;
 					ri:=regmt.Index-1+rm;
 					rsd:=rep.SubString(ri);
+					if regmt.Groups.Count=3 then begin
+						subc:=dval(regmt.Groups[2].value);
+						subd:=regmt.Groups[1].value;
+						subs:=regmt.Groups[0].value;
+						subr:=trim(split(syms[c].str,subc-1,subd));
+					end;
 					if setrs('%CR%',CRLF) then else
 					if setrs('%E%',indenttab+'end;') then else
 					if setrs('%t%',TAB) then else
@@ -584,6 +590,8 @@ var
 					if setrs('%c',cat(c)) then pos:=syms.count else
 					if setrs('%o',getsrc(c)) then else
 					if setrs('%s',getstr(c)) then else
+					if setrs('%s',getstr(c)) then else
+					if (subc>0)and setrs('%'+(c+1).ToString+subd,subr) then else
 						setrs('%',get(c));
 
 					rep:=rep.remove(ri,regmt.Length).insert(ri,rs);
@@ -598,7 +606,7 @@ var
 			for r := 1 to CG.RowCount do begin
 				if CG.cells[0,r].indexof('//')=0 then continue;
 				par:= CG.cells[1,r];
-				para:=SplitString(par,'ï½œ');
+				para:=SplitString(par,'b');
 				rep:= CG.cells[2,r];
 				vrv:= CG.cells[3,r];
 				inccnt:=sis(par);
@@ -609,15 +617,15 @@ var
 					replace(rep);
 					inc(pos,inccnt);
 
-					if å®£è¨€ãƒ–ãƒ­ãƒƒã‚¯ then begin
+					if éŒ¾ƒuƒƒbƒN then begin
 					end else begin
 						if vrv.IndexOf('var')>0 then begin
 							varstr:=vrv+CRLF;
 						end;
 					end;
 //						if rep='' then begin
-//							stype:=symVar;//è¿½åŠ ç„¡ã—
-//							inc(pos); //;ã‚’é£›ã°ã™
+//							stype:=symVar;//’Ç‰Á–³‚µ
+//							inc(pos); //;‚ğ”ò‚Î‚·
 //						end;
 					ret:=rep;
 					result:=true;
@@ -637,7 +645,7 @@ var
 		if MLStruct.Checked then LOG.Lines.add(indentstr(strc));
 		pos:=0;
 		bindent:=indent;
-		//ãƒ–ãƒ­ãƒƒã‚¯ã«å¤‰æ›å‰ã‚’ä¿å­˜ã—ã¦å†æ§‹æˆã§ãã‚‹ã‚ˆã†ã«ã™ã‚‹
+		//ƒuƒƒbƒN‚É•ÏŠ·‘O‚ğ•Û‘¶‚µ‚ÄÄ\¬‚Å‚«‚é‚æ‚¤‚É‚·‚é
 		try
 		for i := 0 to syms.hi do begin
 			if i<pos then continue;
@@ -723,45 +731,40 @@ var
 	end;
 
 
-	function å¼(æœ€åˆ:boolean): boolean;
+	function ®(Å‰:boolean): boolean;
 	var
-		æ¼”ç®—å­:array of TStringDynArray;
+		‰‰Zq:array of TStringDynArray;
 		count:integer;
-		var ã‚ã£ãŸ:boolean;
+		var ‚ ‚Á‚½:boolean;
 
-		function ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(ipos: integer): boolean;
+		function ƒJƒbƒR‚Â‚¯‚é(ipos: integer): boolean;
 		var cpos1,cpos2: integer;
 		begin
-			if ipos>High(æ¼”ç®—å­) then exit(false);
+			if ipos>High(‰‰Zq) then exit(false);
 			cpos1:=syms.hi;
-			result:=ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(ipos+1);
-			if MatchText(sym.str, æ¼”ç®—å­[ipos]) then begin
+			result:=ƒJƒbƒR‚Â‚¯‚é(ipos+1);
+			if MatchText(sym.str, ‰‰Zq[ipos]) then begin
 				repeat
 					syms.add(sym);
 					symnext;
 					syms.add(sym);
 					symnext;
-					result:=ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(ipos+1);
-				until not MatchText(sym.str, æ¼”ç®—å­[ipos]);
+					result:=ƒJƒbƒR‚Â‚¯‚é(ipos+1);
+				until not MatchText(sym.str, ‰‰Zq[ipos]);
 				cpos2:=syms.count+1;
 				syms.ins(cpos1,symbol('(','(',symDelimiter));
 				syms.ins(cpos2,symbol(')',')',symDelimiter));
-				æœ€åˆ:=false;
-				ã‚ã£ãŸ:=true;
+				Å‰:=false;
+				‚ ‚Á‚½:=true;
 				result:=true;
 			end;
 		end;
 	begin
 		count:=0;
-		æ¼”ç®—å­:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<=']];
-		ã‚ã£ãŸ:=false;
-
-//		if sym.typ=symOperator then begin
-//			while (p[0]<>#0) do begin
-				ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(0);
-//			end;
-//		end;
-		result:=ã‚ã£ãŸ;
+		‰‰Zq:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<=']];
+		‚ ‚Á‚½:=false;
+		ƒJƒbƒR‚Â‚¯‚é(0);
+		result:=‚ ‚Á‚½;
 	end;
 
 
@@ -771,12 +774,9 @@ var
 		dstt:STRING;
 	begin
 		sym.typ:=symKBlock;
-//		while (p[0]<>#0) do begin
-			sym.add(statements(')'));
-			if str=';' then sym.addstr(' ');
-//			if str=')' then break;
-			sym.str:=sym.str;
-//		end;
+		sym.add(statements(')'));
+		if str=';' then sym.addstr(' ');
+		sym.str:=sym.str;
 		syms.add(sym);
 	end;
 
@@ -808,18 +808,17 @@ var
 
 	function statement:Integer;
 	var
-		æ”¹è¡Œã¾ã§:boolean;
+		‰üs‚Ü‚Å:boolean;
 		s:string;
 	begin
-		æ”¹è¡Œã¾ã§:=false;
-		ã‚¤ãƒ•:=false;
-		æ¬¡ã¸:=false;
+		‰üs‚Ü‚Å:=false;
+		Ÿ‚Ö:=false;
 		while (p[0]<>#0) do begin
 			symnext;
 			if str=breakchar then break;
 
 			if sym.typ=symComment then begin
-//					if syms.count>0 then //å‰ã®è¦ç´ ã«è¶³ã™
+//					if syms.count>0 then //‘O‚Ì—v‘f‚É‘«‚·
 				dsrc:=dsrc+sym.str;
 				if pline=line then begin
 					//psym.cmt:=sym.str+CRLF;
@@ -842,10 +841,10 @@ var
 
 
 			if MatchStr(str,lineblock) then begin
-				æ”¹è¡Œã¾ã§:=true;
+				‰üs‚Ü‚Å:=true;
 
 			end else if MatchStr(str,varblock) then begin
-				å®£è¨€ãƒ–ãƒ­ãƒƒã‚¯:=true;
+				éŒ¾ƒuƒƒbƒN:=true;
 
 			end;
 
@@ -869,7 +868,7 @@ var
 			end else if str=CRLF then begin
 				pline:=line;
 				inc(line);
-				if æ”¹è¡Œã¾ã§ then begin
+				if ‰üs‚Ü‚Å then begin
 					break;
 				end;
 				continue;
@@ -879,45 +878,32 @@ var
 			end else if str='{' then begin
 				ckakko;
 				continue;
-			end else if å¼(true) then begin
+			end else if ®(true) then begin
 				if str=breakchar then break;
 			end;
 
-
-
-
-			sym.str:=str;
+            sym.str:=str;
 			syms.add(sym);
 
-//			if not æ”¹è¡Œã¾ã§ then begin
-//				if str=';' then begin
-//					if not ã‚¤ãƒ• then break;
-//					sym:=getsymbol;
-//					if sym.str='else' then begin
-//						syms.last^:=sym;
-//						continue;
-//					end;
-//					symback;
-//					break;
-//
-//				end else if str=':' then begin
-//
-//					if psym.typ=symKBlock then continue;    //å‰ã‚«ãƒƒã‚³ã¯ãƒ¡ãƒ³ãƒåˆæœŸåŒ–åˆæœŸåŒ–
-//					if å®£è¨€ãƒ–ãƒ­ãƒƒã‚¯ then continue;//label:
-//					break;
-//				end;
-//			end;
+			if not ‰üs‚Ü‚Å then begin
+                if str=':' then begin
+
+					if psym.typ=symKBlock then continue;    //‘OƒJƒbƒR‚Íƒƒ“ƒo‰Šú‰»‰Šú‰»
+					if éŒ¾ƒuƒƒbƒN then continue;//label:
+					break;
+				end;
+			end;
 
 
 		end;
 	end;
 
 begin
-	så®£è¨€ãƒ–ãƒ­ãƒƒã‚¯:=å®£è¨€ãƒ–ãƒ­ãƒƒã‚¯;
+	séŒ¾ƒuƒƒbƒN:=éŒ¾ƒuƒƒbƒN;
 	syms.null.clear;
 	statement;
 	result:=reconstruct;
-	å®£è¨€ãƒ–ãƒ­ãƒƒã‚¯:=så®£è¨€ãƒ–ãƒ­ãƒƒã‚¯;
+	éŒ¾ƒuƒƒbƒN:=séŒ¾ƒuƒƒbƒN;
 end;
 
 
@@ -961,7 +947,7 @@ begin
         DEL.Text:=dsrc;
 
     except
-        s:='å¤‰æ›ã‚¨ãƒ©ãƒ¼';
+        s:='•ÏŠ·ƒGƒ‰[';
     end;
     if MDvrow.Checked then
         CG.TopRow:=CG.Row;
@@ -1173,7 +1159,7 @@ function TSymbols.ins(t: Integer; s: TSymbol): Integer;
 var i:integer;
 begin
 	if t<0 then t:=0;
-	if t>count then t:=count; //ç¯„å›²è¶…ã¯è¿½åŠ 
+	if t>count then t:=count; //”ÍˆÍ’´‚Í’Ç‰Á
 
 	add(null);
 	if t<hi then
@@ -1327,15 +1313,15 @@ var
 				exit(false);
 			end;
 
-			if arg[si]='å·¦' then begin
-				if sym.typestr<>'æ–‡' then
+			if arg[si]='¶' then begin
+				if sym.typestr<>'•¶' then
 					exit(false);
 				exit(true);
 			end else
-			if arg[si]='å³' then begin
-				if typestr<>'æ•°' then
-					if typestr<>'æ–‡' then
-						if typestr<>'æ–‡å­—åˆ—' then
+			if arg[si]='‰E' then begin
+				if typestr<>'”' then
+					if typestr<>'•¶' then
+						if typestr<>'•¶š—ñ' then
 							if typestr<>'(*)' then exit(false);
 				exit(true);
 			end;
@@ -1371,7 +1357,7 @@ begin
 			if si>high(arg) then begin
 				break;
 			end;
-			if arg[si]='ï¼Š' then begin
+			if arg[si]='–' then begin
 				wild:=true;
 				inc(si);
 			end;
@@ -1650,11 +1636,11 @@ function TSymbol.typestr: string;
 begin
 	if typ=symType         then exit('Type');
 	if typ=symVoid         then exit('Void');
-	if typ=symNumber       then exit('æ•°');
-	if typ=symChar         then exit('æ–‡å­—');
+	if typ=symNumber       then exit('”');
+	if typ=symChar         then exit('•¶š');
 	if typ=symInt          then exit('Int');
 	if typ=symDouble       then exit('Double');
-	if typ=symString       then exit('æ–‡å­—åˆ—');
+	if typ=symString       then exit('•¶š—ñ');
 	if typ=symStruct       then exit('Struct');
 	if typ=symSemicolon    then exit(';');
 	if typ=symColon        then exit(':');
@@ -1667,17 +1653,17 @@ begin
 	if typ=symBlock        then exit('*;');
 	if typ=symKBlock       then exit('(*)');
 	if typ=symCBlock       then exit('{*}' );
-	if typ=symOperator     then exit('æ¼”ç®—å­');
-	if typ=symCommand      then exit('å‘½ä»¤' );
-	if typ=symLabel        then exit('ãƒ©ãƒ™ãƒ«'   );
-	if typ=symDelimiter    then exit('åŒºåˆ‡');
+	if typ=symOperator     then exit('‰‰Zq');
+	if typ=symCommand      then exit('–½—ß' );
+	if typ=symLabel        then exit('ƒ‰ƒxƒ‹'   );
+	if typ=symDelimiter    then exit('‹æØ');
 	if typ=symEnd          then exit('End'      );
 	if typ=symJump         then exit('Jump'     );
-	if typ=symQualifier    then exit('ä¿®é£¾å­');
-	if typ=symReserved     then exit('æ–‡' );
-	if typ=symFunction     then exit('é–¢æ•°' );
-	if typ=symVariable     then exit('å¤‰æ•°' );
-	if typ=symArray        then exit('é…åˆ—'    );
+	if typ=symQualifier    then exit('Cüq');
+	if typ=symReserved     then exit('•¶' );
+	if typ=symFunction     then exit('ŠÖ”' );
+	if typ=symVariable     then exit('•Ï”' );
+	if typ=symArray        then exit('”z—ñ'    );
 end;
 
 { TStringDynArrayHelper }
@@ -1820,7 +1806,7 @@ begin
 		s:='';
 		for j:=0 to xw do begin
 			if j>0 then s:=s+#9;
-				ss:=StringReplace(Cells[xs+j,ys+i],#9,'',[rfReplaceAll]);//ã‚¿ãƒ–ã¯å‰Šé™¤
+				ss:=StringReplace(Cells[xs+j,ys+i],#9,'',[rfReplaceAll]);//ƒ^ƒu‚Ííœ
 				//if Pos(ss,CRLF)>0 then
 				ss:=d_dquotedstr(ss,CRLF);
 				s:=s+ss;
@@ -1965,36 +1951,36 @@ end.
 
 
 
-				//å‘½ä»¤
-//				if sis('*.Containsï½œ(*)') then begin   //é›†åˆ
+				//–½—ß
+//				if sis('*.Containsb(*)') then begin   //W‡
 //					s:=' ('+incgetsrc(1)+' in '+StringReplace(incgetsrc(0),'.Contains','',[])+') ';
 //
 //				end else
 
-//				if sis('ifï½œ(*)') then begin   //if
+//				if sis('ifb(*)') then begin   //if
 //					s:=incgetsrc(0)+' '+incgetsrc(1)+' then ';
 //				end else
-//				if sis('doï½œ{*}ï½œwhileï½œ(*)') then begin   //do while falseã§çµ‚äº†   repeat until trueã§çµ‚äº†
+//				if sis('dob{*}bwhileb(*)') then begin   //do while false‚ÅI—¹   repeat until true‚ÅI—¹
 //					incgetsrc(0);
 //					incgetsrc(2);
 //					s:='repeat'+CRLF+incgetsrc(1)+' until not ( '+incgetsrc(3)+' ) ';
 //				end else
-//				if sis('whileï½œ(*)') then begin   //while
+//				if sis('whileb(*)') then begin   //while
 //					s:=incgetsrc(0)+' '+incgetsrc(1)+' do ';
 //				end else
-//				if sis('return') then begin   //return å¼;  exit(å¼)ã€€
+//				if sis('return') then begin   //return ®;  exit(®)@
 //					incget(0);
 //					s:='Exit( '+inccat+' )'
 //				end else
 
-//				if sis('forï½œ(*)') then begin   //if
+//				if sis('forb(*)') then begin   //if
 //					incgetsrc(0);
 //					s:=incgetsrc(1);
 //					param:=SplitString(s,';');
 //					s:=makefor;
 //
 //					if (s='') then begin
-//						if sis('forï½œ(*)ï½œ{*}') then begin
+//						if sis('forb(*)b{*}') then begin
 //							ss:=incgetsrc(2);
 //							s:='{for} '+param[0]+';'+CRLF;
 //							s:=s+'{for}while'+' '+param[1]+' do begin'+CRLF
@@ -2013,7 +1999,7 @@ end.
 //
 //				end else
 
-//				if sis('enumï½œæ–‡ï½œ{*}') then begin
+//				if sis('enumb•¶b{*}') then begin
 //					s:=StringReplace(incgetsrc(2),':=','=',[rfReplaceAll]);
 //					s:=StringReplace(s,' , ',','+CRLF+indenttab+tab,[rfReplaceAll]);
 //					s:=incgetsrc(1)+' = ( '+CRLF+s+');'+CRLF;
@@ -2021,69 +2007,69 @@ end.
 //
 //				end else
 
-//				if sis('unionï½œæ–‡ï½œ{*}') then begin
+//				if sis('unionb•¶b{*}') then begin
 //					incgetsrc(0);
 //					s:='case Integer of '+CRLF+incgetsrc(1)+CRLF+incgetsrc(2)+CRLF;
 //					s:=s+indenttab+'end;';
 //
 //				end else
-//				if sis('unionï½œ{*}') then begin
+//				if sis('unionb{*}') then begin
 //					incgetsrc(0);
 //					s:='case Integer of '+CRLF+incgetsrc(1)+CRLF;
 //					s:=s+indenttab+'end;'+CRLF;
 //
 //				end else
-//				if sis('structï½œæ–‡ï½œ{*}') then begin
+//				if sis('structb•¶b{*}') then begin
 //					incgetsrc(0);
 //					s:='record'+CRLF+incgetsrc(1)+CRLF+incgetsrc(2)+CRLF;
 //					s:=s+indenttab+'end;'+CRLF;
 //
 //				end else
-//				if sis('structï½œ{*}') then begin
+//				if sis('structb{*}') then begin
 //					incgetsrc(0);
 //					s:='record'+CRLF+incgetsrc(1)+CRLF;
 //					s:=s+indenttab+'end;';
 //
 //				end else
 //
-//				if sis('classï½œæ–‡ï½œ{*}') then begin
+//				if sis('classb•¶b{*}') then begin
 //					s:=incgetsrc(1)+' = '+incgetsrc(0)+CRLF+incgetsrc(2)+CRLF;
 //					s:=s+indenttab+'end;'+CRLF;
 //
 //				end else
-//				if sis('classï½œæ–‡ï½œæ–‡ï½œ{*}') then begin
+//				if sis('classb•¶b•¶b{*}') then begin
 //					s:=incgetsrc(2)+' = '+incgetsrc(0)+CRLF+incgetsrc(3);
 //					s:=s+indenttab+'end;'+CRLF;
 //					incgetsrc(1);
 //				end else
 
 
-//				if sis('#defineï½œæ–‡ï½œ(*)') then begin//#define åå‰() ã¯é–¢æ•°ã¸ã€€ä¸€åˆ—ã™ã¹ã¦èª­ã‚€å‡¦ç†ã‚’ã„ã‚Œã‚‹
+//				if sis('#defineb•¶b(*)') then begin//#define –¼‘O() ‚ÍŠÖ”‚Ö@ˆê—ñ‚·‚×‚Ä“Ç‚Şˆ—‚ğ‚¢‚ê‚é
 //					incgetsrc(0);
 //					s:='function '+incgetsrc(1)+' ( '+incgetsrc(2)+':variant ) : variant; begin ';
 //					ss:=inccat;
 //					s:=s+'exit ( '+ss+' ); end ;';
 //
 //				end else
-//				if sis('#defineï½œæ–‡') then begin//#define åå‰ å€¤
+//				if sis('#defineb•¶') then begin//#define –¼‘O ’l
 //					incgetsrc(0);
 //					conststr:=incgetsrc(1);
 //					s:=conststr+' = '+inccat;
 //
 //				end else
 
-				//#define a 1*2  è¨ˆç®—
-				//#define acb(d) 123*d  ()ã‚ã‚Šã¯å¼ã¯é–¢æ•°ï¼Ÿ
+				//#define a 1*2  ŒvZ
+				//#define acb(d) 123*d  ()‚ ‚è‚Í®‚ÍŠÖ”H
 
 				//6
-//				if sis('æ–‡ï½œ&ï½œæ–‡ï½œ::ï½œæ–‡ï½œ(*)') then begin //é–¢æ•° å‚ç…§
+//				if sis('•¶b&b•¶b::b•¶b(*)') then begin //ŠÖ” QÆ
 //					s:='function '+incget(2)+'.'+incget(4)+' '+incget(5)+' : '+incget(0);
 //					come:=incget(1);
 //					incget(6);
 //					stype:=symFunction;
 //
 //				end else
-//				if sis('æ–‡ï½œ*ï½œæ–‡ï½œ::ï½œæ–‡ï½œ(*)') then begin //é–¢æ•° ãƒã‚¤ãƒ³ã‚¿
+//				if sis('•¶b*b•¶b::b•¶b(*)') then begin //ŠÖ” ƒ|ƒCƒ“ƒ^
 //					s:='function '+incget(2)+'.'+incget(4)+' '+incget(5)+' : '+incget(0);
 //					come:=incget(1);
 //					stype:=symFunction;
@@ -2091,58 +2077,58 @@ end.
 //
 //				end else
 //				//4
-//				if sis('æ–‡ï½œ&ï½œæ–‡ï½œ(*)') then begin //é–¢æ•° å‚ç…§
+//				if sis('•¶b&b•¶b(*)') then begin //ŠÖ” QÆ
 //					s:='function '+incget(2)+' '+incget(3)+' : '+incget(0);
 //					come:=incget(1);
 //					stype:=symFunction;
 //
 //				end else
-//				if sis('æ–‡ï½œ*ï½œæ–‡ï½œ(*)') then begin //é–¢æ•° ãƒã‚¤ãƒ³ã‚¿
+//				if sis('•¶b*b•¶b(*)') then begin //ŠÖ” ƒ|ƒCƒ“ƒ^
 //					s:='function '+incget(2)+' '+incget(3)+' : '+incget(0);
 //					come:=incget(1);
 //					stype:=symFunction;
 //
 //				end else
-//				if sis('ä¿®é£¾å­ï½œæ–‡ï½œ&ï½œæ–‡') then begin //å®£è¨€ const å‚ç…§ã€€%0 %3 : %1
+//				if sis('Cüqb•¶b&b•¶') then begin //éŒ¾ const QÆ@%0 %3 : %1
 //					s:=incget(0)+' '+incgetval(3)+' : '+incget(1);
 //					come:=incget(2);
 //				end else
-//				if sis('ä¿®é£¾å­ï½œæ–‡ï½œ*ï½œæ–‡') then begin //å®£è¨€ const ãƒã‚¤ãƒ³ã‚¿
+//				if sis('Cüqb•¶b*b•¶') then begin //éŒ¾ const ƒ|ƒCƒ“ƒ^
 //					s:=incget(0)+' '+incgetval(3)+' : '+incget(1);
 //					come:=incget(2);
 //
 //				end else
-//				if sis('ä¿®é£¾å­ï½œæ–‡ï½œæ–‡') then begin     //å®£è¨€ const
+//				if sis('Cüqb•¶b•¶') then begin     //éŒ¾ const
 //					s:=incget(0)+' '+incgetval(2)+' : '+incget(1);
 //
 //				end else
 				//3
-//				if sis('æ–‡ï½œ&ï½œæ–‡') then begin //å®£è¨€ å‚ç…§
+//				if sis('•¶b&b•¶') then begin //éŒ¾ QÆ
 //					s:=incgetval(2)+' : '+incget(0);
 //					come:=incget(1);
 //
 //				end else
-//				if sis('æ–‡ï½œ*ï½œæ–‡') then begin //å®£è¨€ ãƒã‚¤ãƒ³ã‚¿
+//				if sis('•¶b*b•¶') then begin //éŒ¾ ƒ|ƒCƒ“ƒ^
 //					s:=incgetval(2)+' : '+incget(0);
 //					come:=incget(1);
 //
 //				end else
 //				//2
-//				if sis('æ–‡ï½œ:') then begin  //ã‚¹ã‚³ãƒ¼ãƒ—
+//				if sis('•¶b:') then begin  //ƒXƒR[ƒv
 //					s:=incgetsrc(0);
 //					incget(1);
 //					stype:=symLabel;
 //
 //				end else
-//				if sis('å·¦ï½œæ–‡') then begin  //å®£è¨€
+//				if sis('¶b•¶') then begin  //éŒ¾
 //					s:=incgetval(1)+' : '+incget(0);
 //
 //				end else
-//				if sis('(*)ï½œæ–‡') then begin //ã‚­ãƒ£ã‚¹ãƒˆ
+//				if sis('(*)b•¶') then begin //ƒLƒƒƒXƒg
 //					s:=Split(incgetsrc(0),0)+'( '+incget(1)+' )'
 //
 //				end else
-//				if sis('(*)ï½œ(*)') then begin //ã‚­ãƒ£ã‚¹ãƒˆ
+//				if sis('(*)b(*)') then begin //ƒLƒƒƒXƒg
 //					s:=incget(2)+' : '+incget(0);
 //				end else
 
@@ -2150,7 +2136,7 @@ end.
 
 //				if valname<>'' then begin
 //					varstr:=varstr+indentstr(s)+';'+CRLF;
-//					if syms[pos].str='=' then //å®£è¨€ã®æ¬¡ãŒä»£å…¥
+//					if syms[pos].str='=' then //éŒ¾‚ÌŸ‚ª‘ã“ü
 //						s:=split(s,0,':')+'{:'+split(s,1,':')+'}';
 //				end;
 
@@ -2169,9 +2155,9 @@ end.
 //
 //					if param1[2]=':=' then vname:=param1[1];
 //					if param1[1]=':=' then vname:=param1[0];
-//					if vname='' then exit;            //åˆ¶å¾¡å¤‰æ•°ãªã—
-//					if vname<>param2[0] then exit;    //åˆ¶å¾¡ç•°ãªã‚‹
-//					if vname<>param3[0] then exit;    //åˆ¶å¾¡ç•°ãªã‚‹
+//					if vname='' then exit;            //§Œä•Ï”‚È‚µ
+//					if vname<>param2[0] then exit;    //§ŒäˆÙ‚È‚é
+//					if vname<>param3[0] then exit;    //§ŒäˆÙ‚È‚é
 //
 //					if (param2[1]='<') and (param3[1]='++') then s:=' to '     +param2[2]+'-1 do ';
 //					if (param2[1]='>') and (param3[1]='--') then s:=' downto ' +param2[2]+'+1 do ';
@@ -2253,37 +2239,37 @@ end.
 //
 
 
-//	procedure å¼;
+//	procedure ®;
 //	var		ssym: tsymbol;
-//		procedure è«–ç†å’Œ;
+//		procedure ˜_—˜a;
 //		var
 //			cpos:Integer;
 //
-//			procedure è«–ç†ç©;
+//			procedure ˜_—Ï;
 //			var
 //				cpos:Integer;
 //
-//				procedure å¦å®š;
+//				procedure ”Û’è;
 //				var
 //					ssym:TSymbol;
 //					cpos:Integer;
 //
-//					procedure æ¯”è¼ƒ;
+//					procedure ”äŠr;
 //					var
 //						cpos: integer;
 //						ssym: tsymbol;
 //
-//						procedure åŠ ç®—;
+//						procedure ‰ÁZ;
 //						var
 //							cpos: integer;
 //							ssym: tsymbol;
 //
-//							procedure æ›ç®—;
+//							procedure Š|Z;
 //							var
 //								cpos: integer;
 //								ssym: TSymbol;
 //
-//								procedure ãã®ä»–;
+//								procedure ‚»‚Ì‘¼;
 //								var
 //									cpos: integer;
 //									ssym: TSymbol;
@@ -2298,82 +2284,82 @@ end.
 //								end;
 //
 //							begin
-//								ãã®ä»–;
+//								‚»‚Ì‘¼;
 //								if MatchText(sym.str, ['*', '/', '%']) then begin
-//									ãã®ä»–;
+//									‚»‚Ì‘¼;
 //								end;
 //							end;
 //
 //						begin
-//							æ›ç®—;
+//							Š|Z;
 //							if MatchText(sym.str, []) then begin
-//								æ›ç®—;
+//								Š|Z;
 //							end;
 //
 //						end;
 //
 //					begin
 //						cpos:=syms.hi;
-//						åŠ ç®—;
+//						‰ÁZ;
 //						if MatchText(sym.str, ['==', '!=', '<', '>', '>=', '<=']) then begin
-//							åŠ ç®—;
+//							‰ÁZ;
 //						end;
 //					end;
 //
 //				begin
 //					cpos:=syms.hi;
-//					æ¯”è¼ƒ;
+//					”äŠr;
 //					if MatchText(sym.str, ['!']) then begin
-//						æ¯”è¼ƒ;
+//						”äŠr;
 //					end;
 //				end;
 //
 //			begin
 //				cpos:=syms.hi;
-//				å¦å®š;
+//				”Û’è;
 //				if sym.str='&&' then begin
-//					å¦å®š;
+//					”Û’è;
 //				end;
 //			end;
 //
 //		begin
 //			cpos:=syms.hi;
-//			è«–ç†ç©;
+//			˜_—Ï;
 //			if sym.str='||' then begin
 //				while sym.str='||' do begin
-//					è«–ç†ç©;
+//					˜_—Ï;
 //				end;
 //			end;
 //		end;
 //
 //	begin
-//		ã‚«ãƒƒã‚³æŒ¿å…¥ä½ç½®:=-1;
-//		è«–ç†å’Œ;
+//		ƒJƒbƒR‘}“üˆÊ’u:=-1;
+//		˜_—˜a;
 //		//		bsym:=sym;
 //		if sym.str='=' then begin
 //			syms.add(sym);
 //			symnext;
-//			è«–ç†å’Œ;
+//			˜_—˜a;
 //		end;
 //	end;
 
-//	function æ¼”ç®—å­é †åº(æœ€åˆ:boolean): boolean;
+//	function ‰‰Zq‡˜(Å‰:boolean): boolean;
 //	var
-//		æ¼”ç®—å­:array of TStringDynArray;
-//		å„ªå…ˆ:TStringDynArray;
+//		‰‰Zq:array of TStringDynArray;
+//		—Dæ:TStringDynArray;
 //		count:integer;
 //
-//		function ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(ipos: integer): boolean;
+//		function ƒJƒbƒR‚Â‚¯‚é(ipos: integer): boolean;
 //		var cpos1: integer;
 //		var cpos2: integer;
-//		var ã‚ã£ãŸ:boolean;
-//		å„ªå…ˆã :boolean;
+//		var ‚ ‚Á‚½:boolean;
+//		—Dæ‚¾:boolean;
 //		begin
-//			if ipos>High(æ¼”ç®—å­) then exit(false);
+//			if ipos>High(‰‰Zq) then exit(false);
 //			cpos1:=syms.hi;
-//			ã‚ã£ãŸ:=ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(ipos+1);
-//			if MatchText(sym.str, æ¼”ç®—å­[ipos]) then begin
-//				å„ªå…ˆã :=MatchText(sym.str, å„ªå…ˆ);
+//			‚ ‚Á‚½:=ƒJƒbƒR‚Â‚¯‚é(ipos+1);
+//			if MatchText(sym.str, ‰‰Zq[ipos]) then begin
+//				—Dæ‚¾:=MatchText(sym.str, —Dæ);
 //				repeat
 //
 //					syms.add(sym);
@@ -2381,25 +2367,25 @@ end.
 //					syms.add(sym);
 //					symnext;
 //					cpos2:=syms.count+1;
-//					ã‚ã£ãŸ:=ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(ipos+1);
-//				until not MatchText(sym.str, æ¼”ç®—å­[ipos]);
+//					‚ ‚Á‚½:=ƒJƒbƒR‚Â‚¯‚é(ipos+1);
+//				until not MatchText(sym.str, ‰‰Zq[ipos]);
 //				inc(count);
-//				if å„ªå…ˆã  and ã‚ã£ãŸ then begin
-////					if ã‚ã£ãŸ then cpos2:=syms.count+1;
+//				if —Dæ‚¾ and ‚ ‚Á‚½ then begin
+////					if ‚ ‚Á‚½ then cpos2:=syms.count+1;
 //					if count>0 then begin
 //						syms.ins(cpos1,symbol('(', '(', symDelimiter));
 //						syms.ins(cpos2,symbol(')',')',symDelimiter));
 //					end;
 //				end;
-//				æœ€åˆ:=false;
+//				Å‰:=false;
 //				result:=true;
 //			end;
 //		end;
 //	begin
 //		count:=0;
-//		æ¼”ç®—å­:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<='],['+']];
-//		å„ªå…ˆ:=['||','&&','!','==','!=','<','>','>=','<='];
-//		result:=ã‚«ãƒƒã‚³ã¤ã‘ã‚‹(0);
+//		‰‰Zq:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<='],['+']];
+//		—Dæ:=['||','&&','!','==','!=','<','>','>=','<='];
+//		result:=ƒJƒbƒR‚Â‚¯‚é(0);
 //	end;
 
 
