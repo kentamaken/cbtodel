@@ -122,7 +122,7 @@ type
 		DEL:TRichEdit;
 		CB:TRichEdit;
 		Splitter1:TSplitter;
-    PanelTop: TPanel;
+	PanelTop: TPanel;
 		MainMenu1: TMainMenu;
 		MConv: TMenuItem;
 		MSave: TMenuItem;
@@ -135,13 +135,13 @@ type
 	Splitter2: TSplitter;
 	MFolder: TMenuItem;
 	PopupMenu1: TPopupMenu;
-    PConv: TMenuItem;
+	PConv: TMenuItem;
 	PCut: TMenuItem;
 	PCopy: TMenuItem;
-    PPeste: TMenuItem;
-    Mend: TMenuItem;
+	PPeste: TMenuItem;
+	Mend: TMenuItem;
 	N8: TMenuItem;
-    PopupMenu2: TPopupMenu;
+	PopupMenu2: TPopupMenu;
 	MenuItem1: TMenuItem;
 	MenuItem2: TMenuItem;
 	MenuItem3: TMenuItem;
@@ -162,22 +162,22 @@ type
 	Panel3: TPanel;
 	Label2: TLabel;
 	EditLineBlock: TEdit;
-    Label1: TLabel;
+	Label1: TLabel;
 	EditSet: TEdit;
-    MRowDup: TMenuItem;
+	MRowDup: TMenuItem;
 	MRowDel: TMenuItem;
 	MDvrow: TMenuItem;
 	MSet: TMenuItem;
 	MFixed: TMenuItem;
-    MLSource: TMenuItem;
-    MLStruct: TMenuItem;
-    ButtonOk: TButton;
-    EditVarBlock: TEdit;
-    Label3: TLabel;
+	MLSource: TMenuItem;
+	MLStruct: TMenuItem;
+	ButtonOk: TButton;
+	EditVarBlock: TEdit;
+	Label3: TLabel;
 	c01: TMenuItem;
 	o01: TMenuItem;
-    N1: TMenuItem;
-    N2: TMenuItem;
+	N1: TMenuItem;
+	N2: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -197,7 +197,7 @@ type
 	procedure MRowDupClick(Sender: TObject);
 	procedure MRowDelClick(Sender: TObject);
 	procedure MSetClick(Sender: TObject);
-    procedure N1Click(Sender: TObject);
+	procedure N1Click(Sender: TObject);
 
 	private
 	public
@@ -233,8 +233,8 @@ var
 //	symArray   :TArray<TSymbol>;
 	come       :STRING;
 	str        :STRING;
-	varstr :STRING;      //変数宣言をためる
-	conststr: string;    //定数宣言をためる
+	varstr :STRING;
+	conststr: string;
 	宣言ブロック:boolean;
 
 implementation
@@ -255,15 +255,12 @@ const
 	CHEAD=',入力,出力,宣言';
 
 var PCol, PRow: Integer;
-
-
 	Ini: TIniFile;
 	filename:string;
 	txtfile:string;
 	csvfile:string;
 
 	regmatchstr:TStringDynArray;
-
 
 function TStringSelf.this:TStringList;
 begin
@@ -646,7 +643,7 @@ var
 
 					if 宣言ブロック then begin
 					end else begin
-						if vrv.IndexOf('var')>0 then begin
+						if vrv.IndexOf('var')=0 then begin
 							varstr:=vrv+CRLF;
 						end;
 					end;
@@ -702,7 +699,7 @@ var
 				s:=incget(0);
 //				s:=s+';'+CRLF;
 				if varstr<>'' then begin
-					s:=indenttab+varstr+s;
+					s:=varstr+s;
 					varstr:='';
 				end;
 			end else begin
