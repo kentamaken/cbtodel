@@ -294,7 +294,7 @@ object FormCBtoDEL: TFormCBtoDEL
     Font.Name = #65325#65331' '#12468#12471#12483#12463
     Font.Style = []
     Lines.Strings = (
-      'DEL')
+      'LOG')
     ParentFont = False
     PlainText = True
     PopupMenu = PopupMenu1
@@ -408,6 +408,10 @@ object FormCBtoDEL: TFormCBtoDEL
     object MenuItem4: TMenuItem
       Caption = #36028#12426#20184#12369
     end
+    object N1: TMenuItem
+      Caption = #12467#12513#12531#12488#12488#12464#12523
+      OnClick = N1Click
+    end
     object MenuItem5: TMenuItem
       Caption = '-'
     end
@@ -419,10 +423,6 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = '%s0% '#12502#12525#12483#12463#20013#36523
       OnClick = MenuItemGridClick
     end
-    object MenuItem7: TMenuItem
-      Caption = '%s0% '#12477#12540#12473
-      OnClick = MenuItemGridClick
-    end
     object c01: TMenuItem
       Caption = '%c0% '#24460#12429#12377#12409#12390
     end
@@ -430,11 +430,11 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = '%o0% '#12477#12540#12473
     end
     object MenuItem10: TMenuItem
-      Caption = '%CR% '#25913#34892
+      Caption = #65372' '#25913#34892
       OnClick = MenuItemGridClick
     end
     object MenuItem11: TMenuItem
-      Caption = #65285'E%'
+      Caption = #8594' '#12479#12502
       OnClick = MenuItemGridClick
     end
     object MenuItem12: TMenuItem
@@ -468,9 +468,8 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = #24038
       OnClick = MenuItemGrid2Click
     end
-    object N1: TMenuItem
-      Caption = #12467#12513#12531#12488
-      OnClick = N1Click
+    object N2: TMenuItem
+      Caption = '*; '#24335
     end
   end
 end
