@@ -1,5 +1,4 @@
 ﻿unit CBtoDELunit;
-
 
 interface
 
@@ -98,22 +97,41 @@ type
 	end;
 
 	TGrid=class(TStringGrid)
+	type
+		TFuncXY = reference to procedure(x,y: Integer);
 	private
 		constructor CreateEX(Origin:TStringGrid);
 		procedure WMChar(var Msg:TWMChar);message WM_CHAR;
-		procedure CutCopy(modecut:boolean);
 		procedure KeyDown(var Key:Word;Shift:TShiftState);override;
-		function Paste:TGridRect;
 		procedure MouseDown(Button:TMouseButton;Shift:TShiftState;
 			X,Y:Integer);override;
 		function DoMouseWheelDown(Shift:TShiftState;MousePos:TPoint)
 			:boolean;override;
 		function DoMouseWheelUp(Shift:TShiftState;MousePos:TPoint)
 			:boolean;override;
+	function ColExpand(min: Integer): Integer;
+    function RowDelete(y, cnt: integer): integer;
+    function RowInsert(y, cnt: integer): integer;
+    function RowClear(y, cnt: integer): integer;
+
+	public
+		saverect:TGridRect;
+		buf:TGrid;
+
+		procedure cutcopy(modecut:boolean);
+		function paste:TGridRect;
+		function selrowdo(func:TFuncXY):integer;
+		function seldo(func:TFuncXY):integer;
+		procedure copy(G:TGrid);
+		procedure save;
+		procedure seldel;
+
 	published
 		property InplaceEditor;
-
 	end;
+
+
+
 
 
 	TFormCBtoDEL=class(TForm)
@@ -122,7 +140,7 @@ type
 		DEL:TRichEdit;
 		CB:TRichEdit;
 		Splitter1:TSplitter;
-	PanelTop: TPanel;
+		PanelTop: TPanel;
 		MainMenu1: TMainMenu;
 		MConv: TMenuItem;
 		MSave: TMenuItem;
@@ -142,42 +160,43 @@ type
 	Mend: TMenuItem;
 	N8: TMenuItem;
 	PopupMenu2: TPopupMenu;
-	MenuItem1: TMenuItem;
-	MenuItem2: TMenuItem;
-	MenuItem3: TMenuItem;
-	MenuItem4: TMenuItem;
+    MGRun: TMenuItem;
+    MGCut: TMenuItem;
+    MGCopy: TMenuItem;
+    MGPaste: TMenuItem;
 	MenuItem5: TMenuItem;
-	MenuItem6: TMenuItem;
-	MenuItem8: TMenuItem;
-	MenuItem10: TMenuItem;
-	MenuItem11: TMenuItem;
-	MenuItem12: TMenuItem;
+    MGIns1: TMenuItem;
+	MGIns2: TMenuItem;
+    MGIns5: TMenuItem;
+	MGIns6: TMenuItem;
+    MGIns7: TMenuItem;
 	MenuItem13: TMenuItem;
-	MenuItem14: TMenuItem;
-	MenuItem15: TMenuItem;
-	MenuItem16: TMenuItem;
-	MenuItem17: TMenuItem;
-	MenuItem18: TMenuItem;
-	MenuItem19: TMenuItem;
+	MGInsb1: TMenuItem;
+    MGInsb2: TMenuItem;
+    MGInsb3: TMenuItem;
+    MGInsb4: TMenuItem;
+    MGInsb5: TMenuItem;
+    MGInsb6: TMenuItem;
 	Panel3: TPanel;
 	Label2: TLabel;
 	EditLineBlock: TEdit;
 	Label1: TLabel;
 	EditSet: TEdit;
-	MRowDup: TMenuItem;
-	MRowDel: TMenuItem;
+    MGRowDup: TMenuItem;
+    MGRowDel: TMenuItem;
 	MDvrow: TMenuItem;
 	MSet: TMenuItem;
 	MFixed: TMenuItem;
-	MLSource: TMenuItem;
-	MLStruct: TMenuItem;
+	MLSource : TMenuItem;
+	MLStruct : TMenuItem;
+	MGRowIns: TMenuItem;
 	ButtonOk: TButton;
 	EditVarBlock: TEdit;
 	Label3: TLabel;
-	c01: TMenuItem;
-	o01: TMenuItem;
-	N1: TMenuItem;
-	N2: TMenuItem;
+    MGIns3: TMenuItem;
+    MGIns4: TMenuItem;
+    MGComment: TMenuItem;
+    MGInsb7: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -188,25 +207,34 @@ type
 		procedure FormCreate(Sender: TObject);
 		procedure CGSetEditText(Sender: TObject; ACol, ARow: Integer;
 		  const Value: string);
-	procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 	procedure FormDestroy(Sender: TObject);
 	procedure MFolderClick(Sender: TObject);
 	procedure ButtonT0Click(Sender: TObject);
 	procedure MenuItemGridClick(Sender: TObject);
 	procedure MenuItemGrid2Click(Sender: TObject);
-	procedure MRowDupClick(Sender: TObject);
-	procedure MRowDelClick(Sender: TObject);
+	procedure MGRowDupClick(Sender: TObject);
+	procedure MGRowDelClick(Sender: TObject);
 	procedure MSetClick(Sender: TObject);
-	procedure N1Click(Sender: TObject);
+	procedure MGCommentClick(Sender: TObject);
+	procedure CBKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+	procedure MGCopyClick(Sender: TObject);
+	procedure MGCutClick(Sender: TObject);
+	procedure MGPasteClick(Sender: TObject);
+    procedure MGRowInsClick(Sender: TObject);
 
 	private
+
 	public
 	   inidir:String;
 		function statements(breakchar:string):TSymbol;
 
 	end;
+	function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
 
-function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
+
+
+
+
 
 var
 	FormCBtoDEL:TFormCBtoDEL;
@@ -243,7 +271,7 @@ implementation
 
 uses
 	System.Generics.Collections,System.Generics.Defaults,strutils
-	,IniFiles ,Masks,Clipbrd,dgridlib,utild, Winapi.ShellAPI;
+	,IniFiles ,Masks,Clipbrd, Winapi.ShellAPI;
 
 const
 	SYMMAXLEN=1024;
@@ -259,8 +287,9 @@ var PCol, PRow: Integer;
 	filename:string;
 	txtfile:string;
 	csvfile:string;
-
 	regmatchstr:TStringDynArray;
+
+
 
 function TStringSelf.this:TStringList;
 begin
@@ -284,6 +313,7 @@ begin
 //	TGrid(CG).InplaceEditor.seltext:=TButton(Sender).Caption;
 	CG.cells[CG.col,CG.row]:=CG.cells[CG.col,CG.row]+TButton(Sender).Caption;
 end;
+
 
 procedure TFormCBtoDEL.CGSetEditText(Sender: TObject; ACol, ARow: Integer;
   const Value: string);
@@ -362,13 +392,34 @@ var ss:string;
 begin
 	ss:=trimright(s);
 	if ss='' then exit(s);
-	if ss[Length(ss)]<>b then result:=s+b else result:=s;
+	if ss[Length(ss)]<>b then result:=ss+b else result:=s;
 end;
 
 function existstr(s,a,b:string):string;
 begin
 	if s<>'' then result:=a+s+b;
 end;
+
+
+function regmatch(t,s:string;var matchstr:TStringDynArray):boolean;
+var
+	regex: TRegEx;
+	match: TMatch;
+	g:TGroup;
+	i:integer;
+begin
+	regex := TRegEx.Create(s);
+//		regmatchstr:=regex.Matchs(t);
+	match := regex.Match(t);
+	result:=match.Success;
+	for i:=1 to match.Groups.Count-1 do begin
+		g:=match.Groups.Item[i];
+		matchstr.add(g.Value);
+		matchstr[0]:=inttostr(matchstr.count);
+
+	end;
+end;
+
 
 function TFormCBtoDEL.statements(breakchar:string):TSymbol;
 var
@@ -378,54 +429,125 @@ var
 	s宣言ブロック:boolean;
 	イフ:boolean;
 	次へ:boolean;
+	prevp:PChar;
+	gprevp:PChar;
+
+	procedure symback;
+	begin
+		p:=gprevp;
+	end;
 
 	function getsymbol:TSymbol;
 	var
 		t:TSymbolType;
 		s:string;
 		ret:string;
+		src:string;
 		buf        : array [0..1024] of CHAR;
 		procedure get;
 		begin
-			pp:=p;
+			prevp:=p;
 			t:=symget(p,buf,'''');
 			s:=buf;
 			if s='const' then t:=symQualifier;
 //				if s='&' then t:=symQualifier else
 //				if s='*' then t:=symQualifier ;
 		end;
-		procedure ifadd(tt:TSymbolType);
+//		procedure ifadd(tt:TSymbolType);
+//		begin
+//			if t<>tt then exit;
+//			ret:=s;
+//			get;
+//			ret:=ret+' '+s;
+//		end;
+//		procedure add(tt:TSymbolType);
+//		begin
+//			if t<>tt then exit;
+//			ret:=s;
+//			repeat
+//				if ret='' then ret:=s else ret:=ret+' '+s;
+//				get;
+//			until t<>tt;
+//			p:=pp;
+//			t:=tt;
+//		end;
+
+
+		function replacegrid:boolean;
+		var c,r:integer;
+		var par:string;
+		var rep:string;
+		i:integer;
+
+			function comp:boolean;
+			var ss:string;
+				p:PChar;
+			begin
+				p:=PChar(par);
+				result:=true;
+				symback;
+				src:='';
+				repeat
+					get;
+					src:=src+s;
+					t:=symget(p,buf,'''');
+					if s<>buf then exit(false);
+				until(p[0]=#0);
+			end;
+			function read:string;
+			var ss:string;
+			p:PChar;
+			begin
+				p:=PChar(par);
+				result:=s;
+				while(p[0]<>#0)do begin
+					t:=symget(p,buf,'''');
+					get;
+					result:=result+s;
+				end;
+			end;
+
 		begin
-			if t<>tt then exit;
-			ret:=s;
-			get;
-			ret:=ret+' '+s;
-		end;
-		procedure add(tt:TSymbolType);
-		begin
-			if t<>tt then exit;
-			ret:=s;
-			repeat
-				if ret='' then ret:=s else ret:=ret+' '+s;
-				get;
-			until t<>tt;
-			p:=pp;
-			t:=tt;
+			result:=false;
+			for r := 1 to CG.RowCount do begin
+				if CG.cells[0,r]<>'置換' then continue;
+				par:= CG.cells[1,r];
+				rep:= CG.cells[2,r];
+				if MatchesMask(par,'/*/') then begin
+					par:=par.Trim(['/']);
+					symback;
+					get;
+					src:=s;
+					ret:=TRegEx.Replace(src,par,rep);
+					if ret<>src then begin
+						if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
+						exit(true);
+                    end;
+				end;
+
+				if comp then begin
+					if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
+
+					ret:=rep;
+					exit(true);
+				end;
+			end;
 		end;
 	begin
-		get;
-		ret:=s;
-//			ifadd(symQualifier);
+		gprevp:=p;
+		if not replacegrid then begin
+			symback;
+			get;
+			src:=s;
+			ret:=s;
+		end;
+
 		str:=ret;
 		result.typ:=t;
 		result.str:=ret;
-		result.src:=ret;
+		result.src:=src;
 	end;
 
-	procedure symback;
-	begin
-		p:=pp;
-	end;
 
 	procedure symnext;
 	begin
@@ -489,26 +611,24 @@ var
 				result:=syms[i].convstr+syms[i].cmt;
 		end;
 
-		function incget(i:integer):string;   //一つ読んで進む
+		function incget(i:integer):string;
 		begin
 			result:=get(i);
 			inc(pos);
 		end;
 
-		function incgetval(i:integer):string;   //一つ読んで進むブロック
+		function incgetval(i:integer):string;
 		begin
 			result:=syms[posstart+i].str;
 			valname:=result;
 			inc(pos);
 		end;
 
-		function incgetsrc(i:integer):string;   //一つ読んで進むブロック
+		function incgetsrc(i:integer):string;
 		begin
 			result:=syms[posstart+i].str;
 			inc(pos);
 		end;
-
-
 
 		function cat(pos:integer):string;   //最後までくっつける 最後の；なし
 		var i:integer;
@@ -629,6 +749,7 @@ var
 			result:=false;
 			for r := 1 to CG.RowCount do begin
 				if CG.cells[0,r].indexof('//')=0 then continue;
+				if CG.cells[0,r].indexof('置換')=0 then continue;
 				par:= CG.cells[1,r];
 				para:=SplitString(par,'｜');
 				rep:= CG.cells[2,r];
@@ -644,7 +765,7 @@ var
 					if 宣言ブロック then begin
 					end else begin
 						if vrv.IndexOf('var')=0 then begin
-							varstr:=vrv+CRLF;
+							varstr:=varstr+vrv+CRLF;
 						end;
 					end;
 //						if rep='' then begin
@@ -658,6 +779,13 @@ var
 			end;
 		end;
 
+		procedure adds(var s:string;a:string);
+		begin
+			if s<>'' then
+				if not (s[length(s)] in [' ',CR,LF,TAB]) then
+					s:=s+' ';
+			s:=s+a;
+		end;
 	begin
 		dstt:='';
 		come:='';
@@ -669,7 +797,6 @@ var
 		if MLStruct.Checked then LOG.Lines.add(indentstr(strc));
 		pos:=0;
 		bindent:=indent;
-		//ブロックに変換前を保存して再構成できるようにする
 		try
 		for i := 0 to syms.hi do begin
 			if i<pos then continue;
@@ -681,7 +808,6 @@ var
 				continue;
 			end;
 			posstart:=pos;
-
 			stype:=symVoid;
 			valname:='';
 			s:='';
@@ -707,10 +833,10 @@ var
 			end;
 
 			if stype=symVar then else
-			if stype=symFunction then dstt:=dstt+s+';'+CRLF else
-			if stype=symLabel then dstt:=dstt+s else
-			if stype=symCBlock then dstt:=dstt+s else
-				dstt:=dstt+s;
+			if stype=symFunction then adds(dstt,s+';'+CRLF) else
+			if stype=symLabel then adds(dstt,s) else
+			if stype=symCBlock then adds(dstt,s) else
+				adds(dstt,s);
 		end;
 		except
 			dmessage('replacegrid:'+ssrc);
@@ -732,13 +858,12 @@ var
 		result.typ:=typ;
 	end;
 
-	function hkakko:TSymbol;
+	function 配列括弧:TSymbol;
 	var
 		ret:TSymbol;
 		DEL:TSymbol;
 		sym:TSymbol;
 	begin
-		//			sym.typ:=symKBlock;
 		DEL.src:='][';
 		DEL.str:=', ';
 		result.addstr('[');
@@ -750,8 +875,6 @@ var
 		end;
 		symback;
 		result.addstr(']');
-
-		//			str:=' [ '+s+'] ';
 	end;
 
 
@@ -761,19 +884,19 @@ var
 		count:integer;
 		var あった:boolean;
 
-		function カッコつける(ipos: integer): boolean;
+		function カッコ(ipos: integer): boolean;
 		var cpos1,cpos2: integer;
 		begin
 			if ipos>High(演算子) then exit(false);
 			cpos1:=syms.hi;
-			result:=カッコつける(ipos+1);
+			result:=カッコ(ipos+1);
 			if MatchText(sym.str, 演算子[ipos]) then begin
 				repeat
 					syms.add(sym);
 					symnext;
 					syms.add(sym);
 					symnext;
-					result:=カッコつける(ipos+1);
+					result:=カッコ(ipos+1);
 				until not MatchText(sym.str, 演算子[ipos]);
 				cpos2:=syms.count+1;
 				syms.ins(cpos1,symbol('(','(',symDelimiter));
@@ -787,25 +910,24 @@ var
 		count:=0;
 		演算子:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<=']];
 		あった:=false;
-		カッコつける(0);
+		カッコ(0);
 		result:=あった;
 	end;
 
 
-	function kakko:Integer;
+	function 丸括弧:Integer;
 	var
 		sym :TSymbol;
 		dstt:STRING;
 	begin
-		sym.typ:=symKBlock;
 		sym.add(statements(')'));
+		sym.typ:=symKBlock;
 		if str=';' then sym.addstr(' ');
-		sym.str:=sym.str;
 		syms.add(sym);
 	end;
 
 
-	function ckakko:Integer;
+	function 複合文:Integer;
 	var
 		sym :TSymbol;
 	begin
@@ -817,20 +939,11 @@ var
 		sym.typ:=symCBlock;
 		sym.indent;
 //		sym.addstr(CRLF);
-
-//		if dstt.str<>'' then begin
-//			sym.str:=sym.str+tab+dstt.str;
-//			sym.str:=StringReplace(sym.str,CRLF,CRLF+tab,[rfReplaceAll]);
-//			sym.str:=sym.str+CRLF;
-//		end;
-
-//        end;
-
-		syms.add(sym);
+		syms .   add(sym);
 		dec(indent);
 	end;
 
-	function statement:Integer;
+	function 文:Integer;
 	var
 		改行まで:boolean;
 		s:string;
@@ -851,14 +964,16 @@ var
 				continue;
 			end;
 			if sym.str='[' then begin
-				syms.last.add(hkakko);
+				syms.last.add(配列括弧);
 				continue;
 			end;
 			if sym.convstr='.' then begin
 				sym.str:=sym.convstr;
-				syms.last.add(sym);
+//				if psym.typ=symKBlock then //(*).
+				psym.add(sym);
+				psym.typ:=symReserved;
 				sym:=getsymbol;
-				syms.last.add(sym);
+				psym.add(sym);
 				continue;
 			end;
 
@@ -876,10 +991,10 @@ var
 				syms.add(sym);
 				symnext;
 				if str='(' then begin
-					kakko;
+					丸括弧;
 					symnext;
 					if str='{' then begin
-						ckakko
+						複合文
 					end else begin;
 						inc(indent);
 						symback;
@@ -896,7 +1011,7 @@ var
 				syms.add(sym);
 				symnext;
 				if str='{' then begin
-					ckakko
+					複合文
 				end else begin;
 					inc(indent);
 					symback;
@@ -906,7 +1021,7 @@ var
 					dec(indent);
 				end;
 				if str='(' then begin
-					kakko;
+					丸括弧;
 					symnext;
 				end;
 				continue;
@@ -919,10 +1034,10 @@ var
 				psym.cmt:=psym.cmt+CRLF;
 				continue;
 			end else if str='(' then begin
-				kakko;
+				丸括弧;
 				continue;
 			end else if str='{' then begin
-				ckakko;
+				複合文;
 				continue;
 			end else if 式変換(true) then begin
 				if str=breakchar then break;
@@ -948,7 +1063,7 @@ var
 begin
 	s宣言ブロック:=宣言ブロック;
 	syms.null.clear;
-	statement;
+	文;
 	result:=reconstruct;
 	宣言ブロック:=s宣言ブロック;
 end;
@@ -974,6 +1089,7 @@ begin
 	end;
 	pline:=line;
 	dsrc:='';
+	varstr:='';
 
 	p:=pchar(src);
 	pp:=StrPos(p, '#end#');
@@ -1027,9 +1143,13 @@ procedure TFormCBtoDEL.MCutClick(Sender: TObject);
 	procedure Cut(M:TRichEdit);
 	begin
 		if not M.Focused then exit;
+{$IFDEF DEBUG}
 		Clipboard.AsText:=M.SelText;
 		M.SelText:='';
-		//M.CutToClipboard;
+{$ELSE}
+		M.CutToClipboard;
+{$ENDIF}
+
 	end;
 
 begin
@@ -1122,7 +1242,7 @@ begin
 		CG.FixedCols:=1;
 		CG.FixedRows:=1;
 
-		gridColExpand(CG,10);
+		TGrid(CG).ColExpand(10);
 
 	except
 
@@ -1153,26 +1273,61 @@ begin
 	CG.FixedCols:=(not MFixed.Checked).ToInteger;
 end;
 
-procedure TFormCBtoDEL.N1Click(Sender: TObject);
-var i:integer;
-begin
-	for i := CG.selection.top to CG.selection.bottom do begin
-		if CG.Cells[0,i].indexof('//')=0 then CG.Cells[0,i]:=CG.Cells[0,i].substring(2)
-		else CG.Cells[0,i]:='//'+CG.Cells[0,i];
 
-    end;
+
+//function:String begin Result:='deathma colosseum'end)
+
+procedure TFormCBtoDEL.MGCommentClick(Sender: TObject);
+begin
+	TGrid(CG).selrowdo(procedure(x,y:integer)begin
+		if CG.Cells[0,y].indexof('//')=0 then CG.Cells[0,y]:=CG.Cells[0,y].substring(2)
+		else CG.Cells[0,y]:='//'+CG.Cells[0,y];
+	end);
 end;
 
-procedure TFormCBtoDEL.MRowDelClick(Sender: TObject);
+procedure TFormCBtoDEL.MGCopyClick(Sender: TObject);
 begin
-	gridRowDelete(CG,CG.Row,1);
+	TGrid(CG).cutcopy(false);
+end;
+
+procedure TFormCBtoDEL.MGCutClick(Sender: TObject);
+begin
+	TGrid(CG).cutcopy(true);
+end;
+
+procedure TFormCBtoDEL.MGPasteClick(Sender: TObject);
+begin
+	TGrid(CG).paste;
 
 end;
 
-procedure TFormCBtoDEL.MRowDupClick(Sender: TObject);
+procedure TFormCBtoDEL.MGRowDelClick(Sender: TObject);
+var r:integer;
 begin
-	gridRowInsert(CG,CG.Row,1);
-	CG.Rows[CG.Row]:=CG.Rows[CG.Row+1];
+	TGrid(CG).save;
+	TGrid(CG).selrowdo(procedure(x,y:integer)begin
+		TGrid(CG).RowDelete(TGrid(CG).saverect.Top,1);
+	end);
+	CG.selection:=	TGrid(CG).saverect;
+end;
+
+procedure TFormCBtoDEL.MGRowDupClick(Sender: TObject);
+begin
+	TGrid(CG).save;
+	TGrid(CG).selrowdo(procedure(x,y:integer)begin
+		TGrid(CG).RowInsert(y,1);
+		CG.Rows[y]:=CG.Rows[y+1];
+	end);
+	CG.selection:=	TGrid(CG).saverect;
+end;
+
+procedure TFormCBtoDEL.MGRowInsClick(Sender: TObject);
+begin
+	TGrid(CG).save;
+	TGrid(CG).selrowdo(procedure(x,y:integer)begin
+		TGrid(CG).RowInsert(y,1);
+	end);
+	CG.selection:=	TGrid(CG).saverect;
 end;
 
 procedure TFormCBtoDEL.MPasteClick(Sender: TObject);
@@ -1324,6 +1479,8 @@ begin
 	end;
 end;
 
+
+
 function TSymbols.structureisstr(position:integer;arg: TStringDynArray):integer;
 var
 	i,j,si,di:Integer;
@@ -1332,31 +1489,6 @@ var
 	s:string;
 	wild:boolean;
 	match:boolean;
-
-	function regmatch(t,s:string):boolean;
-	var
-	  regex: TRegEx;
-	  match: TMatch;
-		g:TGroup;
-		i:integer;
-	begin
-		regex := TRegEx.Create(s);
-//		regmatchstr:=regex.Matchs(t);
-		match := regex.Match(t);
-		result:=match.Success;
-		for i:=1 to match.Groups.Count-1 do begin
-			g:=match.Groups.Item[i];
-			regmatchstr.add(g.Value);
-			regmatchstr[0]:=inttostr(regmatchstr.count);
-
-		end;
-
-//		result:=false;
-//		while match.Success do begin
-//			result:=true;
-//			match := match.NextMatch();
-//		end;
-	end;
 
 	function regis(t,s:string):boolean;
 	var
@@ -1376,7 +1508,7 @@ var
 			typestr:=sym.typestr;
 
 			if MatchesMask(arg[si],'/*/') then begin
-				if regmatch(sym.src,dtrimstring(arg[si],'/')) then exit(true);
+				if regmatch(sym.src,arg[si].trim(['/']),regmatchstr) then exit(true);
 				exit(false);
 			end;
 
@@ -1403,8 +1535,8 @@ var
 			if (sym.typ=symDelimiter)and(sym.str=arg[si]) then exit(true);
 
 			if (sym.typ=symOperator)and(sym.str=arg[si]) then exit(true);
-			if (sym.typ=symQualifier)and MatchesMask(sym.str,arg[si]) then exit(true);
-			if (sym.typ=symReserved)and MatchesMask(sym.str,arg[si]) then exit(true);
+			if (sym.typ=symQualifier)and (sym.str=arg[si]) then exit(true);
+			if (sym.typ=symReserved)and (sym.str=arg[si]) then exit(true);
 			if arg[si]<>typestr then exit(false);
 
 	end;
@@ -1450,30 +1582,6 @@ begin
 //		result:=di-position+1;
 end;
 
-function ISALPHA(c:CHAR):boolean;
-begin
-	result:=(('A'<=c)and(c<='Z'))or(('a'<=c)and(c<='z'));
-end;
-
-function ISNUMBER(c:CHAR):boolean;
-begin
-	result:=(strscan('0123456789.',c)<>nil)and(c<>#0);
-end;
-
-function ISDELIMITER(c:CHAR):boolean;
-begin
-	result:=(strscan('''"(),;:[]{}'#13#10,c)<>nil)and(c<>#0);
-end;
-
-function ISOPERATOR(c:CHAR):boolean;
-begin
-	result:=(strscan('.*^%/-+|&=<>\!',c)<>nil)and(c<>#0);
-end;
-
-function ISSPACER(c:CHAR):boolean;
-begin
-	result:=(strscan(' '#9,c)<>nil)and(c<>#0);
-end;
 
 function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
 var
@@ -1481,6 +1589,32 @@ var
 	prechr :CHAR;
 	typ:TSymbolType;
 label getsymerror;
+
+	function ISALPHA(c:CHAR):boolean;
+	begin
+		result:=(('A'<=c)and(c<='Z'))or(('a'<=c)and(c<='z'));
+	end;
+
+	function ISNUMBER(c:CHAR):boolean;
+	begin
+		result:=(strscan('0123456789.',c)<>nil)and(c<>#0);
+	end;
+
+	function ISDELIMITER(c:CHAR):boolean;
+	begin
+		result:=(strscan('''"(),;:[]{}'#13#10,c)<>nil)and(c<>#0);
+	end;
+
+	function ISOPERATOR(c:CHAR):boolean;
+	begin
+		result:=(strscan('.*^%/-+|&=<>\!',c)<>nil)and(c<>#0);
+	end;
+
+	function ISSPACER(c:CHAR):boolean;
+	begin
+		result:=(strscan(' '#9,c)<>nil)and(c<>#0);
+	end;
+
 	function addchr(c:CHAR):boolean;
 	begin
 		if (n>=SYMMAXLEN) then exit(true);
@@ -1534,7 +1668,15 @@ begin
 	while ISSPACER(pos[0]) do inc(pos);
 
 	while (pos[0]<>#0) do begin
-		if ISNUMBER(pos[0]) then begin
+//		if replacegrid then begin
+//
+//		end else
+		if ((pos[0]='0')and(pos[1]='x')) then begin
+			while ISNUMBER(pos[0])or ISALPHA(pos[0]) do begin
+				if addchrinc then break;
+				symtyp:=symNumber;
+			end
+		end else if ISNUMBER(pos[0]) then begin
 			while ISNUMBER(pos[0]) do begin
 				if addchrinc then break;
 				symtyp:=symNumber;
@@ -1674,7 +1816,7 @@ end;
 
 function TSymbol.add(c: TSymbol): string;
 begin
-	str:=str+c.str;
+	str:=convblock+c.str;
 	src:=src+c.src;
 end;
 
@@ -1694,8 +1836,8 @@ end;
 
 function TSymbol.convblock: string;
 begin
-//	if typ=symBlock        then exit(str+';');
-	if typ=symKBlock       then exit(' ( '+str+') ');
+	if typ=symBlock        then exit(str+';');
+	if typ=symKBlock       then exit('('+str+')');
 	if typ=symCBlock       then exit(' begin '+str+' end ');
 	exit(str);
 end;
@@ -1797,6 +1939,20 @@ begin
 end;
 
 
+procedure TGrid.copy(G: TGrid);
+var r:TGridRect;
+begin
+	colcount:=G.colCount;
+	rowcount:=G.RowCount;
+	r:=G.Selection;
+	G.selection:=TGridrect(rect(1,1,G.colCount-1,G.rowCount-1));
+	G.selrowdo(procedure(x,y:integer)begin
+		Rows[y]:=G.Rows[y];
+	end);
+	G.Selection:=r;
+
+end;
+
 constructor TGrid.CreateEX(Origin :TStringGrid);
 var
   MS :TMemoryStream;
@@ -1805,6 +1961,7 @@ begin
   Self.Parent :=Origin.Parent;
   Self.Options :=Origin.Options;
   Self.OnSetEditText :=Origin.OnSetEditText;
+	Buf:=TGrid.Create(self);
 
   MS :=TMemoryStream.Create;
    try
@@ -1864,6 +2021,8 @@ var
 
 begin
 	if not Focused then exit;
+	if modecut then buf.copy(self);
+
 	ys:=Selection.Top;
 	xs:=Selection.Left;
 	yw:=Selection.Bottom-ys;
@@ -1899,6 +2058,7 @@ var
 
 begin
 	if not Focused then exit;
+	buf.copy(self);
 
 	Txt:=TStringList.Create;
 	s:=StringReplace(Clipboard.AsText,CRLF,CR,[rfReplaceAll]);
@@ -1927,39 +2087,73 @@ begin
 		end;
 	end;
 	Txt.Free;
-	result:=GridRect(xs,ys,xs+xw,ys+yw);
+	result:=TGridRect(Rect(xs,ys,xs+xw,ys+yw));
+end;
+
+procedure TGrid.save;
+begin
+	saverect:=selection;
+	buf.copy(self);
+end;
+
+procedure TGrid.seldel;
+begin
+	save;
+	 seldo(procedure(x,y:integer)begin cells[x,y]:=''; end);
+end;
+
+function TGrid.seldo(func: TFuncXY): integer;
+var i,j:integer;
+begin
+	for i := selection.top to selection.bottom do
+		for j := selection.Left to selection.Right do
+			func(j,i);
+end;
+
+function TGrid.selrowdo(func:TFuncXY): integer;
+var i:integer;
+begin
+	for i := selection.top to selection.bottom do
+		func(0,i);
 end;
 
 procedure TGrid.KeyDown(var Key: Word; Shift: TShiftState);
 var w:word;
 begin
-		if ssCtrl in Shift then begin
+	if ssCtrl in Shift then begin
 		if key=17 then exit;
 		case Key of
-	//		WORD('A'):;
 			WORD('X'):CutCopy(true);
 			WORD('C'):CutCopy(false);
 			WORD('V'):Paste;
+			WORD('Z'):copy(buf);
 		end;
+	end else begin
+		case Key of
+			VK_DELETE:seldel;
 		end;
+	end;
 
 	inherited;
 end;
 
-procedure TFormCBtoDEL.FormKeyDown(Sender: TObject; var Key: Word;
+procedure TFormCBtoDEL.CBKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
+{$IFDEF DEBUG}
 	if ssCtrl in Shift then begin
 	if key=17 then exit;
 	case Key of
-//		WORD('A'):;
 		WORD('X'):MCutClick(Sender);
 		WORD('C'):MCopyClick(Sender);
 		WORD('V'):MPasteClick(Sender);
+		else exit;
 	end;
 	key:=0;
 	end;
+{$ENDIF}
 end;
+
 
 procedure TGrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
@@ -2004,6 +2198,75 @@ begin
 	Result := True;
 end;
 
+function TGrid.ColExpand(min:Integer):Integer;
+var
+	i,j     :Integer;
+	w1,w2,w3:Integer;
+begin
+	w3                        :=0;
+	Canvas.Font               :=Font;
+	for j:=0 to ColCount-1 do begin
+		w1:=0;
+		for i:=0 to RowCount-1 do begin
+			w2:=Canvas.TextWidth('['+Cells[j,i]);
+			if (w1<w2) then w1:=w2;
+		end;
+		if w1<min then w1:=min;
+		ColWidths[j]     :=w1;
+		w3               :=w3+(w1)+GridLineWidth;
+	end;
+	for j :=0 to ColCount-1 do
+		if ColWidths[j]>gridWidth then ColWidths[j]:=trunc(gridWidth/2);
+
+	DefaultRowHeight:=Canvas.TextHeight('あ')+2;
+	result          :=w3+4;
+end;
+
+function TGrid.RowDelete(y,cnt:integer):integer;
+var
+	i:integer;
+	w:integer;
+begin
+	result:=0;
+	if cnt<0 then Exit;
+	if y<0 then Exit;
+	if y>=RowCount then Exit;
+	w                     :=RowCount-cnt;
+	for i                 :=y to w-1 do begin
+		Rows[i]      :=Rows[i+cnt];
+		RowHeights[i]:=RowHeights[i+cnt];
+	end;
+	RowClear(w,cnt);
+	RowCount:=w;
+end;
+
+function TGrid.RowInsert(y,cnt:integer):integer;
+var
+	i   :integer;
+	lcnt:integer;
+begin
+	if cnt<0 then Exit;
+	if (y<0)or(y>=RowCount) then y:=RowCount;
+	RowCount:=RowCount+cnt;
+	lcnt:=RowCount;
+
+	for i:=lcnt-1 downto y+cnt do begin
+		Rows[i]:=Rows[i-cnt];
+		RowHeights[i]:=RowHeights[i-cnt];
+	end;
+	for i:=0 to cnt-1 do Rows[y+i].Clear();
+	result:=0;
+end;
+
+function TGrid.RowClear(y,cnt:integer):integer;
+var
+	i:integer;
+begin
+	if (y<0) then y:=0;
+	if y>=RowCount then y:=RowCount;
+	for i:=0 to cnt-1 do Rows[y+i].Clear();
+	result:=0
+end;
 
 
 initialization
@@ -2307,8 +2570,10 @@ end.
 //
 
 
-//	procedure 式;
-//	var		ssym: tsymbol;
+
+//	procedure 式;
+
+//	var		ssym: tsymbol;
 //		procedure 論理和;
 //		var
 //			cpos:Integer;
@@ -2456,5 +2721,3 @@ end.
 //		result:=カッコつける(0);
 //	end;
 
-
-

@@ -2,10 +2,7 @@ program CBtoDEL;
 
 uses
   Vcl.Forms,
-  CBtoDELunit in 'CBtoDELunit.pas' {FormCBtoDEL},
-  dgridlib in '..\UTILS\dgridlib.pas',
-  utild in '..\UTILS\utild.pas',
-  define in '..\UTILS\define.pas';
+  CBtoDELunit in 'CBtoDELunit.pas' {FormCBtoDEL};
 
 {$R *.res}
 

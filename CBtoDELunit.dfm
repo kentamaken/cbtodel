@@ -10,13 +10,11 @@ object FormCBtoDEL: TFormCBtoDEL
   Font.Height = -13
   Font.Name = #65325#65331' '#12468#12471#12483#12463
   Font.Style = []
-  KeyPreview = True
   Menu = MainMenu1
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnKeyDown = FormKeyDown
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
@@ -128,6 +126,7 @@ object FormCBtoDEL: TFormCBtoDEL
       TabOrder = 0
       WantTabs = True
       Zoom = 100
+      OnKeyDown = CBKeyDown
     end
   end
   object Panel2: TPanel
@@ -301,6 +300,7 @@ object FormCBtoDEL: TFormCBtoDEL
     ScrollBars = ssBoth
     TabOrder = 3
     Zoom = 100
+    OnKeyDown = CBKeyDown
   end
   object MainMenu1: TMainMenu
     Left = 72
@@ -368,12 +368,15 @@ object FormCBtoDEL: TFormCBtoDEL
     end
     object PCut: TMenuItem
       Caption = #20999#12426#21462#12426
+      OnClick = MCutClick
     end
     object PCopy: TMenuItem
       Caption = #12467#12500#12540
+      OnClick = MCopyClick
     end
     object PPeste: TMenuItem
       Caption = #36028#12426#20184#12369
+      OnClick = MPasteClick
     end
     object N8: TMenuItem
       Caption = '-'
@@ -387,88 +390,95 @@ object FormCBtoDEL: TFormCBtoDEL
     AutoHotkeys = maManual
     Left = 204
     Top = 40
-    object MenuItem1: TMenuItem
+    object MGRun: TMenuItem
       Caption = #22793#25563
       OnClick = MConvClick
     end
-    object MRowDup: TMenuItem
+    object MGRowIns: TMenuItem
+      Caption = #34892#25407#20837
+      OnClick = MGRowInsClick
+    end
+    object MGRowDup: TMenuItem
       Caption = #34892#35079#35069
-      OnClick = MRowDupClick
+      OnClick = MGRowDupClick
     end
-    object MRowDel: TMenuItem
+    object MGRowDel: TMenuItem
       Caption = #34892#21066#38500
-      OnClick = MRowDelClick
+      OnClick = MGRowDelClick
     end
-    object MenuItem2: TMenuItem
+    object MGCut: TMenuItem
       Caption = #20999#12426#21462#12426
+      OnClick = MGCutClick
     end
-    object MenuItem3: TMenuItem
+    object MGCopy: TMenuItem
       Caption = #12467#12500#12540
+      OnClick = MGCopyClick
     end
-    object MenuItem4: TMenuItem
+    object MGPaste: TMenuItem
       Caption = #36028#12426#20184#12369
+      OnClick = MGPasteClick
     end
-    object N1: TMenuItem
+    object MGComment: TMenuItem
       Caption = #12467#12513#12531#12488#12488#12464#12523
-      OnClick = N1Click
+      OnClick = MGCommentClick
     end
     object MenuItem5: TMenuItem
       Caption = '-'
     end
-    object MenuItem6: TMenuItem
+    object MGIns1: TMenuItem
       Caption = '%0% '#19968#33268#12375#12383#37096#20998
       OnClick = MenuItemGridClick
     end
-    object MenuItem8: TMenuItem
+    object MGIns2: TMenuItem
       Caption = '%s0% '#12502#12525#12483#12463#20013#36523
       OnClick = MenuItemGridClick
     end
-    object c01: TMenuItem
+    object MGIns3: TMenuItem
       Caption = '%c0% '#24460#12429#12377#12409#12390
     end
-    object o01: TMenuItem
+    object MGIns4: TMenuItem
       Caption = '%o0% '#12477#12540#12473
     end
-    object MenuItem10: TMenuItem
+    object MGIns5: TMenuItem
       Caption = #65372' '#25913#34892
       OnClick = MenuItemGridClick
     end
-    object MenuItem11: TMenuItem
+    object MGIns6: TMenuItem
       Caption = #8594' '#12479#12502
       OnClick = MenuItemGridClick
     end
-    object MenuItem12: TMenuItem
+    object MGIns7: TMenuItem
       Caption = '%i% '#12452#12531#12487#12531#12488
       OnClick = MenuItemGridClick
     end
     object MenuItem13: TMenuItem
       Caption = '-'
     end
-    object MenuItem14: TMenuItem
+    object MGInsb1: TMenuItem
       Caption = #65372
       OnClick = MenuItemGrid2Click
     end
-    object MenuItem15: TMenuItem
+    object MGInsb2: TMenuItem
       Caption = '{*} '#12502#12525#12483#12463
       OnClick = MenuItemGrid2Click
     end
-    object MenuItem16: TMenuItem
+    object MGInsb3: TMenuItem
       Caption = '(*) '#12502#12525#12483#12463
       OnClick = MenuItemGrid2Click
     end
-    object MenuItem17: TMenuItem
+    object MGInsb4: TMenuItem
       Caption = #25991
       OnClick = MenuItemGrid2Click
     end
-    object MenuItem18: TMenuItem
+    object MGInsb5: TMenuItem
       Caption = #21491
       OnClick = MenuItemGrid2Click
     end
-    object MenuItem19: TMenuItem
+    object MGInsb6: TMenuItem
       Caption = #24038
       OnClick = MenuItemGrid2Click
     end
-    object N2: TMenuItem
+    object MGInsb7: TMenuItem
       Caption = '*; '#24335
     end
   end
