@@ -270,7 +270,7 @@ implementation
 {$R *.dfm}
 
 uses
-	System.Generics.Collections,System.Generics.Defaults,strutils
+	strutils
 	,IniFiles ,Masks,Clipbrd, Winapi.ShellAPI;
 
 const
