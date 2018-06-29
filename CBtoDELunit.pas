@@ -43,9 +43,9 @@ type
 		cmt:string;
 		function typestr:string;
 		function add(c:TSymbol):string;
-		function addstr(s:string):string;
+		function addstr(const s,e:string):string;
 		function convstr: string;
-		function convblock: string;
+		function convblock: TSymbol;
 		procedure indent;
 		procedure clear;
 	end;
@@ -136,10 +136,10 @@ type
 
 	TFormCBtoDEL=class(TForm)
 		Panel1:TPanel;
-		Panel2:TPanel;
+    PanelDel: TPanel;
 		DEL:TRichEdit;
 		CB:TRichEdit;
-		Splitter1:TSplitter;
+    SplitterDel: TSplitter;
 		PanelTop: TPanel;
 		MainMenu1: TMainMenu;
 		MConv: TMenuItem;
@@ -184,11 +184,11 @@ type
 	EditSet: TEdit;
     MGRowDup: TMenuItem;
     MGRowDel: TMenuItem;
-	MDvrow: TMenuItem;
+    MSDvrow: TMenuItem;
 	MSet: TMenuItem;
 	MFixed: TMenuItem;
-	MLSource : TMenuItem;
-	MLStruct : TMenuItem;
+    MSLSource: TMenuItem;
+    MSLStruct: TMenuItem;
 	MGRowIns: TMenuItem;
 	ButtonOk: TButton;
 	EditVarBlock: TEdit;
@@ -197,6 +197,7 @@ type
     MGIns4: TMenuItem;
     MGComment: TMenuItem;
     MGInsb7: TMenuItem;
+    MSExp: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -331,20 +332,99 @@ begin
 	MLoadClick(sender);
 	PCol:=CG.Col;
 	PRow:=CG.Row;
-
-
 end;
 
 
 
 procedure TFormCBtoDEL.FormDestroy(Sender: TObject);
+var M:TMenuItem;
 begin
-	Ini.WriteInteger( 'Form', 'Width', Width );
-	Ini.WriteInteger( 'Form', 'Height', Height );
-	Ini.WriteInteger( 'Form', 'PanelTop.Height', PanelTop.Height );
+	Ini.WriteInteger('','Width', Width );
+	Ini.WriteInteger('','Height', Height );
+	Ini.WriteInteger('','PanelTop.Height',PanelTop.Height);
+	Ini.WriteInteger('','PanelDel.Width',PanelDel.Width);
 
-
+	for m in MSet do Ini.WriteBool( '',M.Caption,M.Checked);
 end;
+
+procedure TFormCBtoDEL.MLoadClick(Sender: TObject);
+var SL:TStringDynArray;
+	i:integer;
+	M:TMenuItem;
+begin
+	varblock:=SplitString(EditVarBlock.text,' ');
+	lineblock:=SplitString(EditLineBlock.text,' ');
+
+	if DirectoryExists(inidir) then begin
+		filename:=IncludeTrailingBackslash(inidir)+'CBtoDEL'+EditSet.text;
+		Ini.Free;
+		Ini := TIniFile.Create(ChangeFileExt(filename,'.INI'));
+	end else begin
+		filename:=ChangeFileExt(Application.ExeName,'')+EditSet.text;
+	end;
+	txtfile:=ChangeFileExt(filename,'.txt');
+	csvfile:=ChangeFileExt(filename,'.csv');
+	caption:=csvfile;
+
+	try
+		for M in MSet do M.Checked:=Ini.ReadBool( '',M.Caption,M.Checked);
+		 Width     := Ini.ReadInteger( '', 'Width', Width );
+		 Height    := Ini.ReadInteger( '', 'Height', Height );
+		 PanelTop.Height    := Ini.ReadInteger( '', 'PanelTop.Height', PanelTop.Height );
+		 PanelDel.Width    := Ini.ReadInteger( '', 'PanelDel.Width', ClientWidth div 2 );
+		 CB.Lines.Clear;
+		CB.Lines.LoadFromFile(txtfile);
+	except
+	end;
+
+	try
+		CG.RowCount:=1;
+		CG.DrawingStyle:=gdsClassic;
+		CG.DefaultRowHeight:=round(-Font.Height*1.5);
+		SL.load(csvfile);
+		CG.RowCount:=SL.count;
+		for i:=0 to SL.hi do begin
+			CG.rows[i].StrictDelimiter:=true;
+			CG.rows[i].Delimiter:=',';
+			CG.rows[i].QuoteChar:='"';
+			CG.rows[i].DelimitedText:=sl[i];
+		end;
+
+//		gridLoadCsv(CG,csvfile,0,0);
+		CG.ColCount:=SplitString(CHEAD,',').count;
+		CG.Rows[0].CommaText:=CHEAD;
+		CG.FixedCols:=1;
+		CG.FixedRows:=1;
+
+		TGrid(CG).ColExpand(10);
+
+	except
+
+	end;
+		//CG.color:=clGray;
+	ActiveControl:=CG;
+end;
+
+procedure TFormCBtoDEL.MSaveClick(Sender: TObject);
+var SL:TStringDynArray;
+	i:integer;
+begin
+	for i:=0 to CG.RowCount-1 do begin
+		CG.rows[i].StrictDelimiter:=true;
+		CG.rows[i].Delimiter:=',';
+		CG.rows[i].QuoteChar:='"';
+		SL.add(CG.rows[i].DelimitedText);
+	end;
+	SL.save(csvfile);
+	CB.Lines.SaveToFile(txtfile);
+end;
+
+
+
+
+
+
+
 
 function trimrightlen(const s,ts:string;var len:integer):string;
 var
@@ -520,13 +600,13 @@ var
 					src:=s;
 					ret:=TRegEx.Replace(src,par,rep);
 					if ret<>src then begin
-						if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
+						if MSDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 						exit(true);
                     end;
 				end;
 
 				if comp then begin
-					if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
+					if MSDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 
 					ret:=rep;
 					exit(true);
@@ -548,12 +628,6 @@ var
 		result.src:=src;
 	end;
 
-
-	procedure symnext;
-	begin
-		sym:=getsymbol;
-		psym:=syms.last;
-	end;
 
 
 	function reconstruct:TSymbol;
@@ -606,7 +680,7 @@ var
 				result:='begin'+CRLF+gets(i)+'end;'+CRLF;
 
 			end else if syms[i].typ=symKBlock then
-				result:=' ( '+syms[i].str+' ) '+syms[i].cmt
+				result:='('+syms[i].str+')'+syms[i].cmt
 			else
 				result:=syms[i].convstr+syms[i].cmt;
 		end;
@@ -756,7 +830,7 @@ var
 				vrv:= CG.cells[3,r];
 				inccnt:=sis(par);
 				if inccnt>0 then begin
-					if MDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
+					if MSDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 
 					replace(vrv);
 					replace(rep);
@@ -793,8 +867,8 @@ var
 		ssrc:=syms.source;
 		ssrc:=StringReplace(ssrc,CRLF,'',[rfReplaceAll]);
 		ssrc:=StringReplace(ssrc,TAB,'',[rfReplaceAll]);
-		if MLSource.Checked then LOG.Lines.add(indentstr(ssrc));
-		if MLStruct.Checked then LOG.Lines.add(indentstr(strc));
+		if MSLSource.Checked then LOG.Lines.add(indentstr(ssrc));
+		if MSLStruct.Checked then LOG.Lines.add(indentstr(strc));
 		pos:=0;
 		bindent:=indent;
 		try
@@ -866,7 +940,6 @@ var
 	begin
 		DEL.src:='][';
 		DEL.str:=', ';
-		result.addstr('[');
 		while (p[0]<>#0)and(str='[') do begin
 			if result.src<>'[' then result.add(DEL);
 
@@ -874,29 +947,71 @@ var
 			if str=']' then sym:=getsymbol;
 		end;
 		symback;
-		result.addstr(']');
+		result.addstr('[',']');
 	end;
 
+
+
+	function 丸括弧:TSymbol;
+	begin
+		result:=statements(')');
+		result.typ:=symKBlock;
+		if str=';' then result.addstr('',' ');
+	end;
+
+	procedure symnext;
+	var s:TSymbol;
+	begin
+		sym:=getsymbol;
+		psym:=syms.last;
+		if sym.typ=symReserved then begin
+			while (p[0]<>#0) do begin
+				s:=getsymbol;
+				if s.str='[' then begin      //配列
+					sym.add(配列括弧);
+					continue;
+				end else if s.convstr='.' then begin  //メンバ参照
+					s.convstr;
+					sym.add(s);
+					sym.typ:=symReserved;
+					s:=getsymbol;
+					if s.typ=symReserved then begin
+						sym.add(s);
+						continue;
+					end;
+				end else begin
+					symback;
+					break;
+				end;
+			end;
+
+		end;
+	end;
 
 	function 式変換(最初:boolean): boolean;
 	var
 		演算子:array of TStringDynArray;
 		count:integer;
 		var あった:boolean;
+		var cpos1: integer;
 
-		function カッコ(ipos: integer): boolean;
-		var cpos1,cpos2: integer;
+		function カッコ(cpos1,ipos: integer): boolean;
+		var cpos2: integer;
 		begin
 			if ipos>High(演算子) then exit(false);
-			cpos1:=syms.hi;
-			result:=カッコ(ipos+1);
+
+			result:=カッコ(cpos1,ipos+1);
 			if MatchText(sym.str, 演算子[ipos]) then begin
 				repeat
 					syms.add(sym);
 					symnext;
 					syms.add(sym);
 					symnext;
-					result:=カッコ(ipos+1);
+					if sym.str='(' then begin
+						syms.add(丸括弧);
+						symnext;
+					end;
+					result:=カッコ(syms.hi,ipos+1);
 				until not MatchText(sym.str, 演算子[ipos]);
 				cpos2:=syms.count+1;
 				syms.ins(cpos1,symbol('(','(',symDelimiter));
@@ -907,24 +1022,26 @@ var
 			end;
 		end;
 	begin
+		if not MSExp.checked then exit(false);
+		if sym.typ<>symReserved then
+			if sym.typ<>symNumber then
+				 exit(false);
 		count:=0;
 		演算子:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<=']];
+
+		syms.add(sym);
+		cpos1:=syms.hi;
+		symnext;
+		if sym.str='(' then begin//関数
+			syms.add(丸括弧);
+			symnext;
+		end;
+		if str=breakchar then exit(true);
 		あった:=false;
-		カッコ(0);
+		カッコ(cpos1,0);
 		result:=あった;
 	end;
 
-
-	function 丸括弧:Integer;
-	var
-		sym :TSymbol;
-		dstt:STRING;
-	begin
-		sym.add(statements(')'));
-		sym.typ:=symKBlock;
-		if str=';' then sym.addstr(' ');
-		syms.add(sym);
-	end;
 
 
 	function 複合文:Integer;
@@ -952,6 +1069,8 @@ var
 		次へ:=false;
 		while (p[0]<>#0) do begin
 			symnext;
+			str:=sym.str;
+
 			if str=breakchar then break;
 
 			if sym.typ=symComment then begin
@@ -963,35 +1082,33 @@ var
 				end;
 				continue;
 			end;
-			if sym.str='[' then begin
-				syms.last.add(配列括弧);
-				continue;
-			end;
-			if sym.convstr='.' then begin
-				sym.str:=sym.convstr;
-//				if psym.typ=symKBlock then //(*).
-				psym.add(sym);
-				psym.typ:=symReserved;
-				sym:=getsymbol;
-				psym.add(sym);
-				continue;
-			end;
-
-
+//			if sym.str='[' then begin      //配列
+//				syms.last.add(配列括弧);
+//				continue;
+//			end;
+//			if sym.convstr='.' then begin  //メンバ参照
+//				sym.str:=sym.convstr;
+////				if psym.typ=symKBlock then //(*).
+//				psym.add(sym);
+//				psym.typ:=symReserved;
+//				sym:=getsymbol;
+//				if sym.typ=symReserved then begin
+//					psym.add(sym);
+//					continue;
+//				end;
+//			end;
 
 			if MatchStr(str,lineblock) then begin
 				改行まで:=true;
-
 			end else if MatchStr(str,varblock) then begin
 				宣言ブロック:=true;
-
 			end;
 
 			if MatchStr(str,['if','while','for']) then begin
 				syms.add(sym);
 				symnext;
 				if str='(' then begin
-					丸括弧;
+					syms.add(丸括弧);
 					symnext;
 					if str='{' then begin
 						複合文
@@ -1021,11 +1138,14 @@ var
 					dec(indent);
 				end;
 				if str='(' then begin
-					丸括弧;
+					syms.add(丸括弧);
 					symnext;
 				end;
 				continue;
 
+			end else if 式変換(true) then begin
+				if str=breakchar then break;
+				continue;
 			end else if str=CRLF then begin
 				inc(line);
 				if 改行まで then begin
@@ -1034,16 +1154,17 @@ var
 				psym.cmt:=psym.cmt+CRLF;
 				continue;
 			end else if str='(' then begin
-				丸括弧;
-				continue;
+				sym:=丸括弧;
+//				if psym.typ=symReserved then begin //前が文の時 a|(*)で判定できない
+//					sym.convblock;
+//					psym.add(sym);
+//					continue;
+//				end;
 			end else if str='{' then begin
 				複合文;
 				continue;
-			end else if 式変換(true) then begin
-				if str=breakchar then break;
-			end;
+			end;// else
 
-			sym.str:=str;
 			syms.add(sym);
 			pline:=line;
 
@@ -1114,7 +1235,7 @@ begin
 	except
 		s:='変換エラー';
 	end;
-	if MDvrow.Checked then
+	if MSDvrow.Checked then
 		CG.TopRow:=CG.Row;
 	LOG.Perform(EM_LINESCROLL, 0, LOG.Lines.Count);
 	LOG.Perform(EM_SCROLL, SB_LINEUP, 0);
@@ -1193,76 +1314,6 @@ begin
 	else
 		ShellExecute(Handle, nil,PChar(ExtractFileDir(Application.ExeName)),'', nil, SW_SHOW)
 
-end;
-
-procedure TFormCBtoDEL.MLoadClick(Sender: TObject);
-var SL:TStringDynArray;
-	i:integer;
-begin
-	varblock:=SplitString(EditVarBlock.text,' ');
-	lineblock:=SplitString(EditLineBlock.text,' ');
-
-	if DirectoryExists(inidir) then begin
-		filename:=IncludeTrailingBackslash(inidir)+'CBtoDEL'+EditSet.text;
-		Ini.Free;
-		Ini := TIniFile.Create(ChangeFileExt(filename,'.INI'));
-	end else begin
-		filename:=ChangeFileExt(Application.ExeName,'')+EditSet.text;
-	end;
-	txtfile:=ChangeFileExt(filename,'.txt');
-	csvfile:=ChangeFileExt(filename,'.csv');
-	caption:=csvfile;
-
-	try
-		 Width     := Ini.ReadInteger( 'Form', 'Width', Width );
-		 Height    := Ini.ReadInteger( 'Form', 'Height', Height );
-		 PanelTop.Height    := Ini.ReadInteger( 'Form', 'PanelTop.Height', PanelTop.Height );
-		 Panel2.Width:=ClientWidth div 2;
-		 CB.Lines.Clear;
-		CB.Lines.LoadFromFile(txtfile);
-	except
-	end;
-
-	try
-		CG.RowCount:=1;
-		CG.DrawingStyle:=gdsClassic;
-		CG.DefaultRowHeight:=round(-Font.Height*1.5);
-		SL.load(csvfile);
-		CG.RowCount:=SL.count;
-		for i:=0 to SL.hi do begin
-			CG.rows[i].StrictDelimiter:=true;
-			CG.rows[i].Delimiter:=',';
-			CG.rows[i].QuoteChar:='"';
-			CG.rows[i].DelimitedText:=sl[i];
-		end;
-
-//		gridLoadCsv(CG,csvfile,0,0);
-		CG.ColCount:=SplitString(CHEAD,',').count;
-		CG.Rows[0].CommaText:=CHEAD;
-		CG.FixedCols:=1;
-		CG.FixedRows:=1;
-
-		TGrid(CG).ColExpand(10);
-
-	except
-
-	end;
-		//CG.color:=clGray;
-	ActiveControl:=CG;
-end;
-
-procedure TFormCBtoDEL.MSaveClick(Sender: TObject);
-var SL:TStringDynArray;
-	i:integer;
-begin
-	for i:=0 to CG.RowCount-1 do begin
-		CG.rows[i].StrictDelimiter:=true;
-		CG.rows[i].Delimiter:=',';
-		CG.rows[i].QuoteChar:='"';
-		SL.add(CG.rows[i].DelimitedText);
-	end;
-	SL.save(csvfile);
-	CB.Lines.SaveToFile(txtfile);
 end;
 
 
@@ -1589,6 +1640,10 @@ var
 	prechr :CHAR;
 	typ:TSymbolType;
 label getsymerror;
+	//Identifiers識別子 Tokens複合文 Keywords予約語
+	//Punctuators区切り文字! % ^ & * ( ) – + = { } | ~ [ ] \ ; ' : " < > ? , . / #
+
+
 
 	function ISALPHA(c:CHAR):boolean;
 	begin
@@ -1816,15 +1871,15 @@ end;
 
 function TSymbol.add(c: TSymbol): string;
 begin
-	str:=convblock+c.str;
+	convblock;
+	str:=str+c.str;
 	src:=src+c.src;
 end;
 
-function TSymbol.addstr(s: string): string;
+function TSymbol.addstr(const s,e: string): string;
 begin
-	str:=str+s;
-	src:=src+s;
-
+	str:=s+str+e;
+	src:=s+src+e;
 end;
 
 procedure TSymbol.clear;
@@ -1834,12 +1889,12 @@ begin
 	src:='';
 end;
 
-function TSymbol.convblock: string;
+function TSymbol.convblock: TSymbol;
 begin
-	if typ=symBlock        then exit(str+';');
-	if typ=symKBlock       then exit('('+str+')');
-	if typ=symCBlock       then exit(' begin '+str+' end ');
-	exit(str);
+	if typ=symBlock        then begin addstr('',';'); end;
+	if typ=symKBlock       then begin addstr('(',')'); end;
+	if typ=symCBlock       then begin addstr(' begin ',' end ');end;
+	exit(self);
 end;
 
 function TSymbol.typestr: string;

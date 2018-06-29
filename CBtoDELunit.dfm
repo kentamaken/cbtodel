@@ -17,14 +17,13 @@ object FormCBtoDEL: TFormCBtoDEL
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
-  object Splitter1: TSplitter
-    Left = 373
+  object SplitterDel: TSplitter
+    Left = 372
     Top = 156
+    Width = 4
     Height = 420
     Align = alRight
-    ExplicitLeft = 376
-    ExplicitTop = 32
-    ExplicitHeight = 644
+    ExplicitLeft = 373
   end
   object Splitter2: TSplitter
     Left = 0
@@ -39,15 +38,16 @@ object FormCBtoDEL: TFormCBtoDEL
   object Panel1: TPanel
     Left = 0
     Top = 156
-    Width = 373
+    Width = 372
     Height = 420
     Align = alClient
     Caption = 'Panel1'
     TabOrder = 0
+    ExplicitWidth = 373
     object CB: TRichEdit
       Left = 1
       Top = 1
-      Width = 371
+      Width = 370
       Height = 418
       Align = alClient
       Font.Charset = SHIFTJIS_CHARSET
@@ -127,15 +127,16 @@ object FormCBtoDEL: TFormCBtoDEL
       WantTabs = True
       Zoom = 100
       OnKeyDown = CBKeyDown
+      ExplicitWidth = 371
     end
   end
-  object Panel2: TPanel
+  object PanelDel: TPanel
     Left = 376
     Top = 156
     Width = 372
     Height = 420
     Align = alRight
-    Caption = 'Panel2'
+    Caption = 'PanelDel'
     TabOrder = 1
     object DEL: TRichEdit
       Left = 1
@@ -303,6 +304,8 @@ object FormCBtoDEL: TFormCBtoDEL
     OnKeyDown = CBKeyDown
   end
   object MainMenu1: TMainMenu
+    AutoHotkeys = maManual
+    AutoLineReduction = maManual
     Left = 72
     Top = 40
     object MConv: TMenuItem
@@ -340,18 +343,23 @@ object FormCBtoDEL: TFormCBtoDEL
         Caption = #22266#23450#21015#32232#38598
         OnClick = MSetClick
       end
-      object MDvrow: TMenuItem
+      object MSDvrow: TMenuItem
         Caption = #21512#33268#12375#12383#27083#36896#12434#36984#25246
         Checked = True
         OnClick = MSetClick
       end
-      object MLSource: TMenuItem
+      object MSLSource: TMenuItem
         Caption = #12525#12464#12395#12477#12540#12473#20986#21147
         Checked = True
         OnClick = MSetClick
       end
-      object MLStruct: TMenuItem
+      object MSLStruct: TMenuItem
         Caption = #12525#12464#12395#27083#36896#20986#21147
+        Checked = True
+        OnClick = MSetClick
+      end
+      object MSExp: TMenuItem
+        Caption = #35542#29702#24335#22793#25563
         Checked = True
         OnClick = MSetClick
       end
