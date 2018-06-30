@@ -193,11 +193,12 @@ type
 	ButtonOk: TButton;
 	EditVarBlock: TEdit;
 	Label3: TLabel;
-    MGIns3: TMenuItem;
+	MGIns3: TMenuItem;
     MGIns4: TMenuItem;
     MGComment: TMenuItem;
     MGInsb7: TMenuItem;
     MSExp: TMenuItem;
+    ComboBox1: TComboBox;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -265,6 +266,7 @@ var
 	varstr :STRING;
 	conststr: string;
 	宣言ブロック:boolean;
+	ブロック名:string;
 
 implementation
 
@@ -507,6 +509,7 @@ var
 	syms:TSymbols;
 	psym:PSymbol;
 	s宣言ブロック:boolean;
+	sブロック名:string;
 	イフ:boolean;
 	次へ:boolean;
 	prevp:PChar;
@@ -984,8 +987,8 @@ var
 					break;
 				end;
 			end;
-
 		end;
+		str:=sym.str;
 	end;
 
 	function 式変換(最初:boolean): boolean;
@@ -1069,7 +1072,6 @@ var
 		次へ:=false;
 		while (p[0]<>#0) do begin
 			symnext;
-			str:=sym.str;
 
 			if str=breakchar then break;
 
@@ -1102,6 +1104,13 @@ var
 				改行まで:=true;
 			end else if MatchStr(str,varblock) then begin
 				宣言ブロック:=true;
+				syms.add(sym);
+				symnext;
+				if str<>'{' then begin
+					ブロック名:=str;
+					syms.add(sym);
+					continue;
+				end;
 			end;
 
 			if MatchStr(str,['if','while','for']) then begin
@@ -1168,7 +1177,6 @@ var
 			syms.add(sym);
 			pline:=line;
 
-
 			if not 改行まで then begin
 				if str=':' then begin
 					if psym.typ=symKBlock then continue;    //前カッコはメンバ初期化初期化
@@ -1183,16 +1191,18 @@ var
 
 begin
 	s宣言ブロック:=宣言ブロック;
+	sブロック名:=ブロック名;
 	syms.null.clear;
 	文;
 	result:=reconstruct;
 	宣言ブロック:=s宣言ブロック;
+	ブロック名:=sブロック名;
 end;
 
 
 procedure TFormCBtoDEL.MConvClick(Sender: TObject);
 var
-    i, j: Integer;
+	i, j: Integer;
 begin
 	LOG.Clear;
 //	int l=E->Perform(EM_LINEFROMCHAR,-1,0)+1;
@@ -1562,6 +1572,8 @@ var
 				if regmatch(sym.src,arg[si].trim(['/']),regmatchstr) then exit(true);
 				exit(false);
 			end;
+			if arg[si]='ブロック名' then
+				arg[si]:=ブロック名;
 
 			if arg[si]='左' then begin
 				if sym.typestr<>'文' then
