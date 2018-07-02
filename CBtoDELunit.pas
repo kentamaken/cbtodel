@@ -198,7 +198,7 @@ type
     MGComment: TMenuItem;
     MGInsb7: TMenuItem;
     MSExp: TMenuItem;
-    ComboBox1: TComboBox;
+    KEY: TMemo;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -752,6 +752,7 @@ var
 		var b:integer;
 		i:integer;
 		var inccnt:integer;
+		idx:integer;
 
 
 			procedure replace(var rep:string);
@@ -828,8 +829,6 @@ var
 				if CG.cells[0,r].indexof('//')=0 then continue;
 				if CG.cells[0,r].indexof('置換')=0 then continue;
 				par:= CG.cells[1,r];
-				para:=SplitString(par,'｜');
-				rep:= CG.cells[2,r];
 				vrv:= CG.cells[3,r];
 				inccnt:=sis(par);
 				if inccnt>0 then begin
@@ -837,6 +836,12 @@ var
 
 					replace(vrv);
 					replace(rep);
+					idx:=rep.IndexOf('var'):
+					if idx>0 then begin
+						varstr:=varstr+rep.Substring(idx)+CRLF;
+						rep:=rep.Remove(idx);
+					end;
+
 					if pos<>syms.count then inc(pos,inccnt);
 
 					if 宣言ブロック then begin
@@ -1072,7 +1077,6 @@ var
 		次へ:=false;
 		while (p[0]<>#0) do begin
 			symnext;
-
 			if str=breakchar then break;
 
 			if sym.typ=symComment then begin
@@ -1084,21 +1088,6 @@ var
 				end;
 				continue;
 			end;
-//			if sym.str='[' then begin      //配列
-//				syms.last.add(配列括弧);
-//				continue;
-//			end;
-//			if sym.convstr='.' then begin  //メンバ参照
-//				sym.str:=sym.convstr;
-////				if psym.typ=symKBlock then //(*).
-//				psym.add(sym);
-//				psym.typ:=symReserved;
-//				sym:=getsymbol;
-//				if sym.typ=symReserved then begin
-//					psym.add(sym);
-//					continue;
-//				end;
-//			end;
 
 			if MatchStr(str,lineblock) then begin
 				改行まで:=true;
@@ -1171,6 +1160,10 @@ var
 //				end;
 			end else if str='{' then begin
 				複合文;
+				continue;
+			end else if str=',' then begin
+				sym.str:=';';
+				syms.add(sym);
 				continue;
 			end;// else
 

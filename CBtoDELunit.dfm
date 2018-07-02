@@ -2,8 +2,8 @@ object FormCBtoDEL: TFormCBtoDEL
   Left = 0
   Top = 0
   Caption = 'FormCBtoDEL'
-  ClientHeight = 644
-  ClientWidth = 748
+  ClientHeight = 593
+  ClientWidth = 756
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,17 +18,18 @@ object FormCBtoDEL: TFormCBtoDEL
   PixelsPerInch = 96
   TextHeight = 13
   object SplitterDel: TSplitter
-    Left = 372
+    Left = 380
     Top = 156
     Width = 4
-    Height = 420
+    Height = 369
     Align = alRight
     ExplicitLeft = 373
+    ExplicitHeight = 420
   end
   object Splitter2: TSplitter
     Left = 0
     Top = 153
-    Width = 748
+    Width = 756
     Height = 3
     Cursor = crVSplit
     Align = alTop
@@ -38,16 +39,18 @@ object FormCBtoDEL: TFormCBtoDEL
   object Panel1: TPanel
     Left = 0
     Top = 156
-    Width = 372
-    Height = 420
+    Width = 380
+    Height = 369
     Align = alClient
     Caption = 'Panel1'
     TabOrder = 0
+    ExplicitWidth = 372
+    ExplicitHeight = 420
     object CB: TRichEdit
       Left = 1
       Top = 1
-      Width = 370
-      Height = 418
+      Width = 378
+      Height = 367
       Align = alClient
       Font.Charset = SHIFTJIS_CHARSET
       Font.Color = clWindowText
@@ -129,18 +132,20 @@ object FormCBtoDEL: TFormCBtoDEL
     end
   end
   object PanelDel: TPanel
-    Left = 376
+    Left = 384
     Top = 156
     Width = 372
-    Height = 420
+    Height = 369
     Align = alRight
     Caption = 'PanelDel'
     TabOrder = 1
+    ExplicitLeft = 376
+    ExplicitHeight = 420
     object DEL: TRichEdit
       Left = 1
       Top = 1
       Width = 370
-      Height = 418
+      Height = 367
       Align = alClient
       Font.Charset = SHIFTJIS_CHARSET
       Font.Color = clWindowText
@@ -161,16 +166,17 @@ object FormCBtoDEL: TFormCBtoDEL
   object PanelTop: TPanel
     Left = 0
     Top = 0
-    Width = 748
+    Width = 756
     Height = 153
     Margins.Top = 0
     Align = alTop
     TabOrder = 2
+    ExplicitWidth = 748
     object CG: TStringGrid
       Left = 1
-      Top = 25
-      Width = 746
-      Height = 127
+      Top = 33
+      Width = 754
+      Height = 119
       Align = alClient
       Ctl3D = False
       DoubleBuffered = True
@@ -182,6 +188,9 @@ object FormCBtoDEL: TFormCBtoDEL
       PopupMenu = PopupMenu2
       TabOrder = 0
       OnSetEditText = CGSetEditText
+      ExplicitTop = 64
+      ExplicitWidth = 746
+      ExplicitHeight = 88
       ColWidths = (
         64
         64
@@ -196,41 +205,41 @@ object FormCBtoDEL: TFormCBtoDEL
     object Panel3: TPanel
       Left = 1
       Top = 1
-      Width = 746
-      Height = 24
+      Width = 754
+      Height = 32
       Align = alTop
       BevelOuter = bvNone
       Padding.Top = 2
       Padding.Bottom = 2
       TabOrder = 1
+      ExplicitWidth = 746
       object Label2: TLabel
         Left = 97
         Top = 2
         Width = 112
-        Height = 20
+        Height = 28
         Align = alLeft
         AutoSize = False
         Caption = ' '#12521#12452#12531#12502#12525#12483#12463
         Layout = tlCenter
+        ExplicitHeight = 20
       end
       object Label1: TLabel
         Left = 304
         Top = 2
-        Width = 98
-        Height = 20
+        Width = 99
+        Height = 28
         Align = alLeft
         AutoSize = False
         Caption = ' '#23459#35328#12502#12525#12483#12463
         Layout = tlCenter
-        ExplicitLeft = 273
-        ExplicitTop = -2
-        ExplicitHeight = 24
+        WordWrap = True
       end
       object Label3: TLabel
         Left = 0
         Top = 2
         Width = 40
-        Height = 20
+        Height = 28
         Align = alLeft
         AutoSize = False
         Caption = ' '#35373#23450
@@ -243,7 +252,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 209
         Top = 2
         Width = 95
-        Height = 20
+        Height = 28
         Align = alLeft
         TabOrder = 0
         Text = '#define'
@@ -253,40 +262,41 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 40
         Top = 2
         Width = 57
-        Height = 20
+        Height = 28
         Align = alLeft
         TabOrder = 1
         ExplicitHeight = 21
       end
       object ButtonOk: TButton
-        Left = 671
+        Left = 679
         Top = 2
         Width = 75
-        Height = 20
+        Height = 28
         Align = alRight
         Caption = #30906#23450
         ModalResult = 1
         TabOrder = 2
+        ExplicitLeft = 671
+        ExplicitHeight = 20
       end
       object EditVarBlock: TEdit
-        Left = 402
+        Left = 403
         Top = 2
-        Width = 207
-        Height = 20
+        Width = 151
+        Height = 28
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
+        ExplicitLeft = 402
+        ExplicitHeight = 76
       end
-      object ComboBox1: TComboBox
-        Left = 615
-        Top = 1
-        Width = 145
-        Height = 21
-        TabOrder = 4
-        Text = 'KeyCombo'
-        Items.Strings = (
-          #23459#35328#12502#12525#12483#12463'=struct class enum union'
-          #12521#12452#12531#12502#12525#12483#12463'=#define'
+      object KEY: TMemo
+        Left = 554
+        Top = 2
+        Width = 103
+        Height = 28
+        Align = alLeft
+        Lines.Strings = (
           'Emit'
           'Final'
           'RESTRICT'
@@ -300,25 +310,52 @@ object FormCBtoDEL: TFormCBtoDEL
           '__classmethod'
           '__closure'
           '__declspec'
-          '__declspec(allocate("SEGNAME"))'
-          '__declspec(delphiclass)'
-          '__declspec(delphirecord)'
-          '__declspec(delphireturn)'
-          '__declspec(delphirtti)'
-          '__declspec(dllexport)'
-          '__declspec(dllimport)'
-          '__declspec(dynamic)'
-          '__declspec(hidesbase)'
-          '__declspec(naked)'
-          '__declspec(noreturn)'
-          '__declspec(nothrow)'
-          '__declspec(novtable)'
-          '__declspec(package)'
-          '__declspec(pascalimplementation)'
-          '__declspec(property)'
-          '__declspec(selectany)'
-          '__declspec(thread)'
-          '__declspec(uuid("ComObjectGUID"))'
+          '__declspec'
+          '(allocate'
+          '("SEGNAME"))'
+          '__declspec'
+          '(delphiclass)'
+          '__declspec'
+          '(delphirecord'
+          ')'
+          '__declspec'
+          '(delphireturn'
+          ')'
+          '__declspec'
+          '(delphirtti)'
+          '__declspec'
+          '(dllexport)'
+          '__declspec'
+          '(dllimport)'
+          '__declspec'
+          '(dynamic)'
+          '__declspec'
+          '(hidesbase)'
+          '__declspec'
+          '(naked)'
+          '__declspec'
+          '(noreturn)'
+          '__declspec'
+          '(nothrow)'
+          '__declspec'
+          '(novtable)'
+          '__declspec'
+          '(package)'
+          '__declspec'
+          '(pascalimplem'
+          'enta'
+          'tion)'
+          '__declspec'
+          '(property)'
+          '__declspec'
+          '(selectany)'
+          '__declspec'
+          '(thread)'
+          '__declspec'
+          '(uuid'
+          '("ComObjectGU'
+          'ID")'
+          ')'
           '__delphirtti'
           '__dispid'
           '__except'
@@ -412,7 +449,10 @@ object FormCBtoDEL: TFormCBtoDEL
           'protected'
           'public'
           'register'
-          'reinterpret_cast(typecast Operator)'
+          'reinterpret_c'
+          'ast'
+          '(typecast '
+          'Operator)'
           'requires'
           'return'
           'short'
@@ -441,17 +481,15 @@ object FormCBtoDEL: TFormCBtoDEL
           'wchar_t'
           'while'
           'xor'
-          'xor_eq'
-          '~'
-          #12473#12452#12483#12481
-          '^=')
+          'xor_eq')
+        TabOrder = 4
       end
     end
   end
   object LOG: TRichEdit
     Left = 0
-    Top = 576
-    Width = 748
+    Top = 525
+    Width = 756
     Height = 68
     Align = alBottom
     Font.Charset = SHIFTJIS_CHARSET
