@@ -196,7 +196,7 @@ type
 	MGIns3: TMenuItem;
     MGIns4: TMenuItem;
     MGComment: TMenuItem;
-    MGInsb7: TMenuItem;
+	MGInsb7: TMenuItem;
     MSExp: TMenuItem;
     KEY: TMemo;
 		procedure MConvClick(Sender: TObject);
@@ -267,6 +267,7 @@ var
 	conststr: string;
 	宣言ブロック:boolean;
 	ブロック名:string;
+	ブロックタイプ:string;
 
 implementation
 
@@ -510,10 +511,11 @@ var
 	psym:PSymbol;
 	s宣言ブロック:boolean;
 	sブロック名:string;
+	sブロックタイプ:string;
 	イフ:boolean;
 	次へ:boolean;
-	prevp:PChar;
 	gprevp:PChar;
+	prevsymp:PChar;
 
 	procedure symback;
 	begin
@@ -526,7 +528,9 @@ var
 		s:string;
 		ret:string;
 		src:string;
-		buf        : array [0..1024] of CHAR;
+		prevp:PChar;
+
+		buf:array [0..1024] of CHAR;
 		procedure get;
 		begin
 			prevp:=p;
@@ -564,31 +568,31 @@ var
 
 			function comp:boolean;
 			var ss:string;
-				p:PChar;
+				pp:PChar;
 			begin
-				p:=PChar(par);
+				pp:=PChar(par);
 				result:=true;
-				symback;
+				p:=prevsymp;
 				src:='';
 				repeat
 					get;
 					src:=src+s;
-					t:=symget(p,buf,'''');
+					t:=symget(pp,buf,'''');
 					if s<>buf then exit(false);
 				until(p[0]=#0);
 			end;
-			function read:string;
-			var ss:string;
-			p:PChar;
-			begin
-				p:=PChar(par);
-				result:=s;
-				while(p[0]<>#0)do begin
-					t:=symget(p,buf,'''');
-					get;
-					result:=result+s;
-				end;
-			end;
+//			function read:string;
+//			var ss:string;
+//				pp:PChar;
+//			begin
+//				p:=PChar(par);
+//				result:=s;
+//				while(p[0]<>#0)do begin
+//					t:=symget(p,buf,'''');
+//					get;
+//					result:=result+s;
+//				end;
+//			end;
 
 		begin
 			result:=false;
@@ -598,14 +602,14 @@ var
 				rep:= CG.cells[2,r];
 				if MatchesMask(par,'/*/') then begin
 					par:=par.Trim(['/']);
-					symback;
+					p:=prevp;
 					get;
 					src:=s;
 					ret:=TRegEx.Replace(src,par,rep);
 					if ret<>src then begin
 						if MSDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 						exit(true);
-                    end;
+					end;
 				end;
 
 				if comp then begin
@@ -617,9 +621,9 @@ var
 			end;
 		end;
 	begin
-		gprevp:=p;
+		prevsymp:=p;
 		if not replacegrid then begin
-			symback;
+			p:=prevsymp;
 			get;
 			src:=s;
 			ret:=s;
@@ -732,6 +736,18 @@ var
 			end;
 		end;
 
+		function inccatfor(i:integer;s:string):string;
+		begin
+			result:='';
+			pos:=i;
+			while pos<=syms.hi do begin
+				if result<>'' then result:=result+' ';
+				result:=result+get(pos);
+				inc(pos);
+				if get(pos-1)=s then break;
+			end;
+		end;
+
 		function sis(a:string):integer;
 		begin
 			if trim(a)='' then exit(0);
@@ -741,6 +757,7 @@ var
 
 		function replacegrid(var ret:string;var stype :TSymbolType):boolean;
 		var c,r:integer;
+		var lab:string;
 		var par:string;
 		var para:TStringDynArray;
 		var rep,rep2:string;
@@ -808,7 +825,8 @@ var
 					if t+subd='i+'  then rs:=indenttabplus  else
 					if t='d'  then rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
 					if t='x' then rs:=regmatchstr.item(c+1) else
-					if t='c' then begin rs:=cat(c); pos:=syms.count end else
+					if (t='c') and (subd<>'') then rs:=inccatfor(c,subd) else
+					if t='c' then rs:=inccat else
 					if t='o' then rs:=getsrc(c) else
 					if t='s' then rs:=getstr(c) else
 					if subd<>'' then begin
@@ -826,9 +844,17 @@ var
 		begin
 			result:=false;
 			for r := 1 to CG.RowCount do begin
-				if CG.cells[0,r].indexof('//')=0 then continue;
-				if CG.cells[0,r].indexof('置換')=0 then continue;
+				lab:=CG.cells[0,r];
+				if lab.indexof('//')=0 then continue;
+				if lab.indexof('置換')=0 then continue;
+				lab:=split(lab,1,'｜');
+				if (ブロックタイプ='') then
+					if (lab<>'') then continue;
+				if (ブロックタイプ<>'') then
+					if (lab<>ブロックタイプ) then continue;
 				par:= CG.cells[1,r];
+				para:=SplitString(par,'｜');
+				rep:= CG.cells[2,r];
 				vrv:= CG.cells[3,r];
 				inccnt:=sis(par);
 				if inccnt>0 then begin
@@ -836,7 +862,7 @@ var
 
 					replace(vrv);
 					replace(rep);
-					idx:=rep.IndexOf('var'):
+					idx:=rep.IndexOf('var');
 					if idx>0 then begin
 						varstr:=varstr+rep.Substring(idx)+CRLF;
 						rep:=rep.Remove(idx);
@@ -949,12 +975,12 @@ var
 		DEL.src:='][';
 		DEL.str:=', ';
 		while (p[0]<>#0)and(str='[') do begin
-			if result.src<>'[' then result.add(DEL);
+			if str<>'[' then result.add(DEL);
 
 			result.add(statements(']'));
 			if str=']' then sym:=getsymbol;
 		end;
-		symback;
+		p:=prevsymp;
 		result.addstr('[',']');
 	end;
 
@@ -962,14 +988,18 @@ var
 
 	function 丸括弧:TSymbol;
 	begin
+		sブロックタイプ:=ブロックタイプ;
+		ブロックタイプ:='()';
 		result:=statements(')');
 		result.typ:=symKBlock;
 		if str=';' then result.addstr('',' ');
+		ブロックタイプ:=sブロックタイプ;
 	end;
 
 	procedure symnext;
 	var s:TSymbol;
 	begin
+		gprevp:=p;
 		sym:=getsymbol;
 		psym:=syms.last;
 		if sym.typ=symReserved then begin
@@ -988,7 +1018,7 @@ var
 						continue;
 					end;
 				end else begin
-					symback;
+					p:=prevsymp;
 					break;
 				end;
 			end;
@@ -1093,6 +1123,7 @@ var
 				改行まで:=true;
 			end else if MatchStr(str,varblock) then begin
 				宣言ブロック:=true;
+				ブロックタイプ:=str;
 				syms.add(sym);
 				symnext;
 				if str<>'{' then begin
@@ -1185,11 +1216,13 @@ var
 begin
 	s宣言ブロック:=宣言ブロック;
 	sブロック名:=ブロック名;
+
 	syms.null.clear;
 	文;
 	result:=reconstruct;
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
+	ブロックタイプ:=sブロックタイプ;
 end;
 
 
@@ -1214,6 +1247,9 @@ begin
 	pline:=line;
 	dsrc:='';
 	varstr:='';
+	ブロックタイプ:='';
+	ブロック名:='';
+	宣言ブロック:=false;
 
 	p:=pchar(src);
 	pp:=StrPos(p, '#end#');
@@ -1236,7 +1272,7 @@ begin
 		DEL.Text:=dsrc;
 
 	except
-		s:='変換エラー';
+		on E: Exception do LOG.lines.add(E.Message);
 	end;
 	if MSDvrow.Checked then
 		CG.TopRow:=CG.Row;
@@ -1323,8 +1359,10 @@ end;
 
 procedure TFormCBtoDEL.MSetClick(Sender: TObject);
 begin
+	TGrid(CG).saverect:=TGrid(CG).Selection;
 	TMenuItem(Sender).Checked:=not TMenuItem(Sender).Checked;
 	CG.FixedCols:=(not MFixed.Checked).ToInteger;
+	TGrid(CG).Selection:=TGrid(CG).saverect;
 end;
 
 
@@ -1573,7 +1611,7 @@ var
 					exit(false);
 				exit(true);
 			end else
-			if arg[si]='右' then begin
+			if arg[si]='式' then begin
 				if typestr<>'数' then
 					if typestr<>'文' then
 						if typestr<>'文字列' then
@@ -1623,6 +1661,7 @@ begin
 				if wild then wild:=false;
 			end else begin
 				if not wild then exit(0);
+				if wild then inc(result);
 			end;
 			if not wild then begin
 				inc(si);
@@ -1964,6 +2003,7 @@ end;
 
 function TStringDynArrayHelper.item(i: Integer): String;
 begin
+	result:='';
 	if i<0 then exit;
 	if i>High(self) then exit;
 	result:=self[i];

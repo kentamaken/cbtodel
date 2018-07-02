@@ -44,8 +44,6 @@ object FormCBtoDEL: TFormCBtoDEL
     Align = alClient
     Caption = 'Panel1'
     TabOrder = 0
-    ExplicitWidth = 372
-    ExplicitHeight = 420
     object CB: TRichEdit
       Left = 1
       Top = 1
@@ -139,8 +137,6 @@ object FormCBtoDEL: TFormCBtoDEL
     Align = alRight
     Caption = 'PanelDel'
     TabOrder = 1
-    ExplicitLeft = 376
-    ExplicitHeight = 420
     object DEL: TRichEdit
       Left = 1
       Top = 1
@@ -171,7 +167,6 @@ object FormCBtoDEL: TFormCBtoDEL
     Margins.Top = 0
     Align = alTop
     TabOrder = 2
-    ExplicitWidth = 748
     object CG: TStringGrid
       Left = 1
       Top = 33
@@ -188,9 +183,6 @@ object FormCBtoDEL: TFormCBtoDEL
       PopupMenu = PopupMenu2
       TabOrder = 0
       OnSetEditText = CGSetEditText
-      ExplicitTop = 64
-      ExplicitWidth = 746
-      ExplicitHeight = 88
       ColWidths = (
         64
         64
@@ -212,7 +204,6 @@ object FormCBtoDEL: TFormCBtoDEL
       Padding.Top = 2
       Padding.Bottom = 2
       TabOrder = 1
-      ExplicitWidth = 746
       object Label2: TLabel
         Left = 97
         Top = 2
@@ -276,8 +267,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Caption = #30906#23450
         ModalResult = 1
         TabOrder = 2
-        ExplicitLeft = 671
-        ExplicitHeight = 20
       end
       object EditVarBlock: TEdit
         Left = 403
@@ -287,8 +276,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
-        ExplicitLeft = 402
-        ExplicitHeight = 76
+        ExplicitHeight = 21
       end
       object KEY: TMemo
         Left = 554
