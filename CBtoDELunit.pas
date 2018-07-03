@@ -87,6 +87,7 @@ type
 	TStringDynArrayHelper=record helper for TStringDynArray
 		function add(s:string):Integer;
 		function item(i:Integer):String;
+		function cat:String;
 		function stringselfcreate:TStringSelf;
 		function load(f:string):boolean;
 		function save(f:string):boolean;
@@ -110,7 +111,7 @@ type
 		function DoMouseWheelUp(Shift:TShiftState;MousePos:TPoint)
 			:boolean;override;
 	function ColExpand(min: Integer): Integer;
-    function RowDelete(y, cnt: integer): integer;
+	function RowDelete(y, cnt: integer): integer;
     function RowInsert(y, cnt: integer): integer;
     function RowClear(y, cnt: integer): integer;
 
@@ -163,11 +164,11 @@ type
     MGRun: TMenuItem;
     MGCut: TMenuItem;
     MGCopy: TMenuItem;
-    MGPaste: TMenuItem;
+	MGPaste: TMenuItem;
 	MenuItem5: TMenuItem;
     MGIns1: TMenuItem;
 	MGIns2: TMenuItem;
-    MGIns5: TMenuItem;
+	MGIns5: TMenuItem;
 	MGIns6: TMenuItem;
     MGIns7: TMenuItem;
 	MenuItem13: TMenuItem;
@@ -201,7 +202,7 @@ type
     KEY: TMemo;
     N001: TMenuItem;
     x01: TMenuItem;
-    r0xxx1: TMenuItem;
+	r0xxx1: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -225,7 +226,7 @@ type
 	procedure MGCopyClick(Sender: TObject);
 	procedure MGCutClick(Sender: TObject);
 	procedure MGPasteClick(Sender: TObject);
-    procedure MGRowInsClick(Sender: TObject);
+	procedure MGRowInsClick(Sender: TObject);
 
 	private
 
@@ -487,6 +488,22 @@ end;
 function existstr(s,a,b:string):string;
 begin
 	if s<>'' then result:=a+s+b;
+end;
+
+
+function regextract(t,s,d,f:string):string;
+var
+	m: TMatch;
+	g:TGroup;
+begin
+	result:='';
+	for m in TRegEx.Matches(t,s) do begin
+		for g in m.Groups do begin
+			if g.Value=m.Value then continue;
+			if result<>'' then result:=result+d;
+			result:=result+f+(g.Value);
+		end;
+	end;
 end;
 
 
@@ -791,6 +808,7 @@ var
 		i:integer;
 		var inccnt:integer;
 		idx:integer;
+		regreplaccestr:TStringDynArray;
 
 
 			procedure replace(var rep:string);
@@ -804,10 +822,12 @@ var
 			regmt: TMatch;
 			regg: TGroup;
 			var t:string;
+			var s:string;
 			var subc:integer;
 			var subd:string;
 			var subs:string;
 			var subr:string;
+			SA:TStringDynArray;
 
 			function dele:boolean;
 			begin
@@ -841,13 +861,20 @@ var
 					subr:=regmt.Groups[4].value;
 
 					if t='CR' then rs:=CRLF else
-					if t='R'  then rs:=indenttab+'end;' else
+					if t='E'  then rs:=indenttab+'end;' else
 					if t='T'  then rs:=TAB   else
 					if t+subd='i'  then rs:=indenttab else
 					if t+subd='i+'  then rs:=indenttabplus  else
 					if t='d'  then rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
 					if t='x' then rs:=regmatchstr.item(c+1) else
-					if t='r' then rs:=TRegEx.Replace(getsrc(c),para[c].Trim(['/']),subr) else
+					if t='e' then begin
+						s:=para[c].Trim(['/']);
+						rs:=regextract(getsrc(c),s,subd,subr);
+					end else
+					if t='r' then begin
+						s:=para[c].Trim(['/']);
+						rs:=TRegEx.Replace(getsrc(c),s,subr)
+					end else
 					if (t='c') and (subd<>'') then rs:=inccatfor(c,subd) else
 					if t='c' then begin pos:=c; rs:=inccat; end else
 					if t='o' then rs:=getsrc(c) else
@@ -856,6 +883,8 @@ var
 						subc:=StrToIntDef(regmt.Groups[4].value,0);
 						rs:=trim(split(getstr(c),subc-1,subd));
 					end else rs:=get(c);
+
+
 
 					rep:=rep.remove(ri,regmt.Length);
 					rep:=rep.insert(ri,rs);
@@ -885,11 +914,11 @@ var
 
 					replace(vrv);
 					replace(rep);
-					idx:=rep.IndexOf('var');
-					if idx>0 then begin
-						varstr:=varstr+rep.Substring(idx)+CRLF;
-						rep:=rep.Remove(idx);
-					end;
+//					idx:=rep.IndexOf('var');
+//					if idx>0 then begin
+//						varstr:=varstr+rep.Substring(idx)+CRLF;
+//						rep:=rep.Remove(idx);
+//					end;
 
 					if pos<>syms.count then inc(pos,inccnt);
 
@@ -1683,13 +1712,6 @@ var
 							if typestr<>'(*)' then exit(false);
 				exit(true);
 			end;
-//			if (sym.typ=symKBlock) then begin
-//				if arg[si]='(*)' then continue;
-//				if MatchesMask(arg[si],'(*)') then begin
-//					s:=dtrimstring(arg[si],' ()');
-//					if regmatch(sym.src,s) then continue;
-//				end;
-//			end;
 
 			if (sym.typ=symDelimiter)and(sym.str=arg[si]) then exit(true);
 
@@ -2103,6 +2125,11 @@ begin
 	for s in self do result.Add(s);
 end;
 
+function TStringDynArrayHelper.cat:String;
+var s:string;
+begin
+	for s in self do result:=result+s;
+end;
 
 procedure TGrid.copy(G: TGrid);
 var r:TGridRect;

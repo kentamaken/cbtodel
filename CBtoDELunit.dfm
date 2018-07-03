@@ -183,8 +183,6 @@ object FormCBtoDEL: TFormCBtoDEL
       PopupMenu = PopupMenu2
       TabOrder = 0
       OnSetEditText = CGSetEditText
-      ExplicitTop = 33
-      ExplicitHeight = 119
       ColWidths = (
         64
         64
@@ -269,7 +267,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Caption = #30906#23450
         ModalResult = 1
         TabOrder = 2
-        ExplicitHeight = 28
       end
       object EditVarBlock: TEdit
         Left = 403
@@ -475,7 +472,6 @@ object FormCBtoDEL: TFormCBtoDEL
           'xor_eq')
         TabOrder = 4
         Visible = False
-        ExplicitHeight = 28
       end
     end
   end
