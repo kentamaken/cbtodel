@@ -169,9 +169,9 @@ object FormCBtoDEL: TFormCBtoDEL
     TabOrder = 2
     object CG: TStringGrid
       Left = 1
-      Top = 33
+      Top = 25
       Width = 754
-      Height = 119
+      Height = 127
       Align = alClient
       Ctl3D = False
       DoubleBuffered = True
@@ -183,6 +183,8 @@ object FormCBtoDEL: TFormCBtoDEL
       PopupMenu = PopupMenu2
       TabOrder = 0
       OnSetEditText = CGSetEditText
+      ExplicitTop = 33
+      ExplicitHeight = 119
       ColWidths = (
         64
         64
@@ -198,7 +200,7 @@ object FormCBtoDEL: TFormCBtoDEL
       Left = 1
       Top = 1
       Width = 754
-      Height = 32
+      Height = 24
       Align = alTop
       BevelOuter = bvNone
       Padding.Top = 2
@@ -208,29 +210,29 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 97
         Top = 2
         Width = 112
-        Height = 28
+        Height = 20
         Align = alLeft
         AutoSize = False
         Caption = ' '#12521#12452#12531#12502#12525#12483#12463
         Layout = tlCenter
-        ExplicitHeight = 20
       end
       object Label1: TLabel
         Left = 304
         Top = 2
         Width = 99
-        Height = 28
+        Height = 20
         Align = alLeft
         AutoSize = False
         Caption = ' '#23459#35328#12502#12525#12483#12463
         Layout = tlCenter
         WordWrap = True
+        ExplicitHeight = 28
       end
       object Label3: TLabel
         Left = 0
         Top = 2
         Width = 40
-        Height = 28
+        Height = 20
         Align = alLeft
         AutoSize = False
         Caption = ' '#35373#23450
@@ -243,7 +245,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 209
         Top = 2
         Width = 95
-        Height = 28
+        Height = 20
         Align = alLeft
         TabOrder = 0
         Text = '#define'
@@ -253,7 +255,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 40
         Top = 2
         Width = 57
-        Height = 28
+        Height = 20
         Align = alLeft
         TabOrder = 1
         ExplicitHeight = 21
@@ -262,17 +264,18 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 679
         Top = 2
         Width = 75
-        Height = 28
+        Height = 20
         Align = alRight
         Caption = #30906#23450
         ModalResult = 1
         TabOrder = 2
+        ExplicitHeight = 28
       end
       object EditVarBlock: TEdit
         Left = 403
         Top = 2
         Width = 151
-        Height = 28
+        Height = 20
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
@@ -282,7 +285,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 554
         Top = 2
         Width = 103
-        Height = 28
+        Height = 20
         Align = alLeft
         Lines.Strings = (
           'Emit'
@@ -471,6 +474,8 @@ object FormCBtoDEL: TFormCBtoDEL
           'xor'
           'xor_eq')
         TabOrder = 4
+        Visible = False
+        ExplicitHeight = 28
       end
     end
   end
@@ -638,6 +643,15 @@ object FormCBtoDEL: TFormCBtoDEL
     end
     object MGIns4: TMenuItem
       Caption = '%o0% '#12477#12540#12473
+    end
+    object N001: TMenuItem
+      Caption = '%0?0% '#20998#21106#30058#21495#25351#23450
+    end
+    object x01: TMenuItem
+      Caption = '%x0% '#27491#35215#34920#29694#12510#12483#12481
+    end
+    object r0xxx1: TMenuItem
+      Caption = '%r0 xxx% '#27491#35215#34920#29694#32622#12365#25563#12360' '
     end
     object MGIns5: TMenuItem
       Caption = #65372' '#25913#34892

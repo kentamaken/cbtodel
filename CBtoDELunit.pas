@@ -199,6 +199,9 @@ type
 	MGInsb7: TMenuItem;
     MSExp: TMenuItem;
     KEY: TMemo;
+    N001: TMenuItem;
+    x01: TMenuItem;
+    r0xxx1: TMenuItem;
 		procedure MConvClick(Sender: TObject);
 		procedure MSaveClick(Sender: TObject);
 		procedure MLoadClick(Sender: TObject);
@@ -268,6 +271,7 @@ var
 	宣言ブロック:boolean;
 	ブロック名:string;
 	ブロックタイプ:string;
+	gprevp:PChar;
 
 implementation
 
@@ -387,13 +391,13 @@ begin
 		SL.load(csvfile);
 		CG.RowCount:=SL.count;
 		for i:=0 to SL.hi do begin
-			CG.rows[i].StrictDelimiter:=true;
-			CG.rows[i].Delimiter:=',';
-			CG.rows[i].QuoteChar:='"';
-			CG.rows[i].DelimitedText:=sl[i];
+			LOG.lines.Delimiter:=',';
+			LOG.lines.QuoteChar:='"';
+			LOG.lines.StrictDelimiter:=true;
+			LOG.lines.DelimitedText:=sl[i];
+			CG.rows[i]:=LOG.lines;
 		end;
 
-//		gridLoadCsv(CG,csvfile,0,0);
 		CG.ColCount:=SplitString(CHEAD,',').count;
 		CG.Rows[0].CommaText:=CHEAD;
 		CG.FixedCols:=1;
@@ -405,6 +409,8 @@ begin
 
 	end;
 		//CG.color:=clGray;
+
+
 	ActiveControl:=CG;
 end;
 
@@ -514,7 +520,6 @@ var
 	sブロックタイプ:string;
 	イフ:boolean;
 	次へ:boolean;
-	gprevp:PChar;
 	prevsymp:PChar;
 
 	procedure symback;
@@ -569,16 +574,24 @@ var
 			function comp:boolean;
 			var ss:string;
 				pp:PChar;
+				tt:TSymbolType;
 			begin
 				pp:=PChar(par);
 				result:=true;
 				p:=prevsymp;
 				src:='';
 				repeat
+					tt:=t;
 					get;
+					symget(pp,buf,'''');
+					ss:=buf;
+					if ss='' then begin//先読み分戻す
+						p:=prevp;
+						t:=tt;
+						break;
+					end;
 					src:=src+s;
-					t:=symget(pp,buf,'''');
-					if s<>buf then exit(false);
+					if s<>ss then exit(false);
 				until(p[0]=#0);
 			end;
 //			function read:string;
@@ -614,20 +627,27 @@ var
 
 				if comp then begin
 					if MSDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
-
+					if rep='' then begin
+						t:=symError;
+						p:=prevp;
+					end;
 					ret:=rep;
 					exit(true);
 				end;
 			end;
 		end;
 	begin
-		prevsymp:=p;
-		if not replacegrid then begin
-			p:=prevsymp;
-			get;
-			src:=s;
-			ret:=s;
-		end;
+		repeat
+			prevsymp:=p;
+			if not replacegrid then begin
+				p:=prevsymp;
+				get;
+				src:=s;
+				ret:=s;
+			end;
+			if t<>symError then
+				break;
+		until (p[0]=#0);
 
 		str:=ret;
 		result.typ:=t;
@@ -730,6 +750,7 @@ var
 
 		function inccat:string;   //最後までくっつける
 		begin
+			result:='';
 			while pos<=syms.hi do begin
 				if result<>'' then result:=result+' ';
 				result:=result+incget(pos-posstart);
@@ -806,7 +827,7 @@ var
 				rep:=StringReplace(rep,'⇒',indenttab,[rfReplaceAll]);
 				rep:=StringReplace(rep,'→',TAB,[rfReplaceAll]);
 				rep:=StringReplace(rep,'｜',CRLF,[rfReplaceAll]);
-				regmtc:=TRegEx.Matches(rep,'%([a-zA-Z]*)([0-9]*)([^%]?)([1-9]*)%');
+				regmtc:=TRegEx.Matches(rep,'%([a-zA-Z]*)([0-9]*)([^%]?)([^%]*)%');
 				rm:=0;
 				rs:='';
 				for rc:=0 to regmtc.Count-1 do begin
@@ -817,21 +838,23 @@ var
 					t:=regmt.Groups[1].value;
 					c:=StrToIntDef(regmt.Groups[2].value,0)-1;
 					subd:=regmt.Groups[3].value;
+					subr:=regmt.Groups[4].value;
 
 					if t='CR' then rs:=CRLF else
-					if t='E'  then rs:=indenttab+'end;' else
-					if t='t'  then rs:=TAB   else
+					if t='R'  then rs:=indenttab+'end;' else
+					if t='T'  then rs:=TAB   else
 					if t+subd='i'  then rs:=indenttab else
 					if t+subd='i+'  then rs:=indenttabplus  else
 					if t='d'  then rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
 					if t='x' then rs:=regmatchstr.item(c+1) else
+					if t='r' then rs:=TRegEx.Replace(getsrc(c),para[c].Trim(['/']),subr) else
 					if (t='c') and (subd<>'') then rs:=inccatfor(c,subd) else
-					if t='c' then rs:=inccat else
+					if t='c' then begin pos:=c; rs:=inccat; end else
 					if t='o' then rs:=getsrc(c) else
 					if t='s' then rs:=getstr(c) else
 					if subd<>'' then begin
 						subc:=StrToIntDef(regmt.Groups[4].value,0);
-						rs:=trim(split(syms[c].str,subc-1,subd));
+						rs:=trim(split(getstr(c),subc-1,subd));
 					end else rs:=get(c);
 
 					rep:=rep.remove(ri,regmt.Length);
@@ -851,7 +874,7 @@ var
 				if (ブロックタイプ='') then
 					if (lab<>'') then continue;
 				if (ブロックタイプ<>'') then
-					if (lab<>ブロックタイプ) then continue;
+					if (lab<>'')and(lab<>ブロックタイプ) then continue;
 				par:= CG.cells[1,r];
 				para:=SplitString(par,'｜');
 				rep:= CG.cells[2,r];
@@ -975,7 +998,7 @@ var
 		DEL.src:='][';
 		DEL.str:=', ';
 		while (p[0]<>#0)and(str='[') do begin
-			if str<>'[' then result.add(DEL);
+			if result.str<>'' then result.add(DEL);
 
 			result.add(statements(']'));
 			if str=']' then sym:=getsymbol;
@@ -984,15 +1007,29 @@ var
 		result.addstr('[',']');
 	end;
 
+	function クラス初期化:TSymbol;
+	begin
+		result:=statements(';{');
+		result.typ:=symBlock;
+		if str='{' then symback;
+
+	end;
 
 
 	function 丸括弧:TSymbol;
+	var s:TSymbol;
 	begin
+		result:=s;
 		sブロックタイプ:=ブロックタイプ;
-		ブロックタイプ:='()';
-		result:=statements(')');
+		while p[0]<>#0 do begin
+			ブロックタイプ:='()';
+			s:=statements(',)');
+			result.add(s);
+			if str=')' then break;
+		end;
 		result.typ:=symKBlock;
 		if str=';' then result.addstr('',' ');
+		syms.add(result);
 		ブロックタイプ:=sブロックタイプ;
 	end;
 
@@ -1009,13 +1046,16 @@ var
 					sym.add(配列括弧);
 					continue;
 				end else if s.convstr='.' then begin  //メンバ参照
-					s.convstr;
+					s.str:=s.convstr;
 					sym.add(s);
 					sym.typ:=symReserved;
 					s:=getsymbol;
 					if s.typ=symReserved then begin
 						sym.add(s);
 						continue;
+					end else begin
+						p:=prevsymp;
+						break;
 					end;
 				end else begin
 					p:=prevsymp;
@@ -1043,11 +1083,18 @@ var
 				repeat
 					syms.add(sym);
 					symnext;
-					syms.add(sym);
-					symnext;
 					if sym.str='(' then begin
-						syms.add(丸括弧);
+						丸括弧;
 						symnext;
+					end else begin
+						syms.add(sym);
+						symnext;
+						if sym.str='(' then begin
+							丸括弧;
+							symnext;
+
+						end;
+
 					end;
 					result:=カッコ(syms.hi,ipos+1);
 				until not MatchText(sym.str, 演算子[ipos]);
@@ -1071,10 +1118,10 @@ var
 		cpos1:=syms.hi;
 		symnext;
 		if sym.str='(' then begin//関数
-			syms.add(丸括弧);
+			丸括弧;
 			symnext;
 		end;
-		if str=breakchar then exit(true);
+		if breakchar.Contains(str) then exit(true);
 		あった:=false;
 		カッコ(cpos1,0);
 		result:=あった;
@@ -1083,18 +1130,21 @@ var
 
 
 	function 複合文:Integer;
-	var
-		sym :TSymbol;
+	var s:TSymbol;
 	begin
+		result:=0;
+
 		inc(indent);
 		varstr:='';
-//		while (p[0]<>#0) do begin
-
-		sym:=statements('}');
-		sym.typ:=symCBlock;
-		sym.indent;
+		while p[0]<>#0 do begin
+			s.add(statements(';}'));
+//			if str=';' then syms.add(sym);
+			if str='}' then break;
+		end;
+		s.typ:=symCBlock;
+		s.indent;
 //		sym.addstr(CRLF);
-		syms .   add(sym);
+		syms .   add(s);
 		dec(indent);
 	end;
 
@@ -1107,7 +1157,6 @@ var
 		次へ:=false;
 		while (p[0]<>#0) do begin
 			symnext;
-			if str=breakchar then break;
 
 			if sym.typ=symComment then begin
 //					if syms.count>0 then //前の要素に足す
@@ -1137,7 +1186,7 @@ var
 				syms.add(sym);
 				symnext;
 				if str='(' then begin
-					syms.add(丸括弧);
+					丸括弧;
 					symnext;
 					if str='{' then begin
 						複合文
@@ -1167,14 +1216,14 @@ var
 					dec(indent);
 				end;
 				if str='(' then begin
-					syms.add(丸括弧);
+					丸括弧;
 					symnext;
 				end;
 				continue;
 
 			end else if 式変換(true) then begin
-				if str=breakchar then break;
-				continue;
+//				if breakchar.Contains(str) then break;
+//				continue;
 			end else if str=CRLF then begin
 				inc(line);
 				if 改行まで then begin
@@ -1183,20 +1232,24 @@ var
 				psym.cmt:=psym.cmt+CRLF;
 				continue;
 			end else if str='(' then begin
-				sym:=丸括弧;
-//				if psym.typ=symReserved then begin //前が文の時 a|(*)で判定できない
-//					sym.convblock;
-//					psym.add(sym);
-//					continue;
-//				end;
-			end else if str='{' then begin
-				複合文;
+				丸括弧;
 				continue;
-			end else if str=',' then begin
+
+			end else if str=':' then begin
+				syms.add(sym);
+				syms.add(クラス初期化);
+				continue;
+			end;
+			if str=',' then begin
 				sym.str:=';';
 				syms.add(sym);
-				continue;
+				if not breakchar.Contains(str) then continue;
 			end;// else
+			if breakchar.Contains(str) then break;
+			if str='{' then begin
+				複合文;
+				continue;
+			end;
 
 			syms.add(sym);
 			pline:=line;
@@ -1219,6 +1272,18 @@ begin
 
 	syms.null.clear;
 	文;
+	if breakchar.Contains(';') then begin
+		if str=';' then begin
+			syms.add(sym);
+			symnext;
+			if str=CRLF then
+				psym.cmt:=psym.cmt+CRLF
+			else
+				symback;
+		end;
+    end;
+
+
 	result:=reconstruct;
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
@@ -1260,8 +1325,8 @@ begin
 		while (p[0]<>#0) do begin
 
 			come:='';
-			dstt:=statements('');
-			//if str=';' then dstt.addstr(';');
+			dstt:=statements(';');
+
 
 			dsrc:=dsrc+dstt.str;
 			dsrc:=dsrc+CRLF;
@@ -1650,7 +1715,7 @@ begin
 			if si>high(arg) then begin
 				break;
 			end;
-			if arg[si]='＊' then begin
+			if (arg[si]='＊') then begin
 				wild:=true;
 				inc(si);
 			end;
