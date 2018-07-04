@@ -649,6 +649,9 @@ object FormCBtoDEL: TFormCBtoDEL
     object r0xxx1: TMenuItem
       Caption = '%r0 xxx% '#27491#35215#34920#29694#32622#12365#25563#12360' '
     end
+    object e0xxxxxx1: TMenuItem
+      Caption = '%e0,xxx% '#12464#12523#12540#12503#12434#25277#20986#12375#12390'xxx'#36275#12375#12390','#12391#21306#20999#12427
+    end
     object MGIns5: TMenuItem
       Caption = #65372' '#25913#34892
       OnClick = MenuItemGridClick
@@ -676,20 +679,19 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = '(*) '#12502#12525#12483#12463
       OnClick = MenuItemGrid2Click
     end
+    object N1: TMenuItem
+      Caption = #65290' '#35079#25968#19968#33268
+    end
+    object MGInsb7: TMenuItem
+      Caption = '*; ;'#12414#12391#12398#12502#12525#12483#12463'(if'#38480#23450')'
+    end
     object MGInsb4: TMenuItem
       Caption = #25991
       OnClick = MenuItemGrid2Click
     end
-    object MGInsb5: TMenuItem
-      Caption = #21491
-      OnClick = MenuItemGrid2Click
-    end
     object MGInsb6: TMenuItem
-      Caption = #24038
+      Caption = #24335
       OnClick = MenuItemGrid2Click
-    end
-    object MGInsb7: TMenuItem
-      Caption = '*; '#24335
     end
   end
 end

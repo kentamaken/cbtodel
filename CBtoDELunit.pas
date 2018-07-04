@@ -10,69 +10,69 @@ uses
 type
 	TIntArray=array of Integer;
 
-	TSymbolType=(symError=$00000000,
+	TtokenType=(tknError=$00000000,
 
-		symType=$01000000,symVoid=$01000001,symNumber=$01000002,symChar=$01000003,symInt=$01000004,symDouble=$01000005,symString=$01000006,symItem=$0100000A,
-		symStruct=$0100000E,
-		symSemicolon,
-		symColon,
-		symAnd,
-		symOr,
-		symPointer,
-		symRef,
+		tknType=$01000000,tknVoid=$01000001,tknNumber=$01000002,tknChar=$01000003,tknInt=$01000004,tknDouble=$01000005,tknString=$01000006,tknItem=$0100000A,
+		tknStruct=$0100000E,
+		tknSemicolon,
+		tknColon,
+		tknAnd,
+		tknOr,
+		tknPointer,
+		tknRef,
 
-		symBAnd,
-		symBOr,
-		symBXor,
-		symBNot,
-		symComment,
+		tknBAnd,
+		tknBOr,
+		tknBXor,
+		tknBNot,
+		tknComment,
 
-		symBlock,symKBlock,symCBlock,symOperator=$02000000,symCommand=$02000001,
-		symLabel=$02000002,symDelimiter=$02000003,symEnd=$02000004,symJump=$02000005,
-		symQualifier,
-		symReserved=$04000000,symFunction=$04000001,symVariable=$04000002,
+		tknBlock,tknKBlock,tknCBlock,tknOperator=$02000000,tknCommand=$02000001,
+		tknLabel=$02000002,tknDelimiter=$02000003,tknEnd=$02000004,tknJump=$02000005,
+		tknQualifier,
+		tknReserved=$04000000,tknFunction=$04000001,tknVariable=$04000002,
 
-		symArray=$40000000,symVar=$80000000,symAll=$FFFFFFFF);
+		tknArray=$40000000,tknVar=$80000000,tknAll=$FFFFFFFF);
 
 
-	TSymbol=record
+	Ttoken=record
 	public
-		typ:TSymbolType;
+		typ:TtokenType;
 		str:string;
 		src:string;
 		cmt:string;
 		function typestr:string;
-		function add(c:TSymbol):string;
+		function add(c:Ttoken):string;
 		function addstr(const s,e:string):string;
 		function convstr: string;
-		function convblock: TSymbol;
+		function convblock: Ttoken;
 		procedure indent;
 		procedure clear;
 	end;
-	PSymbol=^TSYmbol;
-	TSymbolArray=array of TSymbol;
+	Ptoken=^Ttoken;
+	TtokenArray=array of Ttoken;
 
-	TSymbols=record
-		null:TSymbol;
-		items:TSymbolArray;
-		function add(s:TSymbol):Integer;
-		function last:PSymbol;
+	Ttokens=record
+		null:Ttoken;
+		items:TtokenArray;
+		function add(s:Ttoken):Integer;
+		function last:Ptoken;
 		function clear:Integer;
 		function count:Integer;
 		function hi:Integer;
-		function structureis(position:integer;arg: array of TSymbolType): boolean;
+		function structureis(position:integer;arg: array of TtokenType): boolean;
 		function structure:string;
 		function source:string;
 		function getstring(Index:Integer):string;
 		procedure putstring(Index:Integer;const s:string);
 		property strings[Index:Integer]:string read getstring write putstring;
 
-		function get(Index:Integer):TSymbol;
-		procedure put(Index:Integer;const s:TSymbol);
-		property item[Index:Integer]:TSymbol read get write put;default;
+		function get(Index:Integer):Ttoken;
+		procedure put(Index:Integer;const s:Ttoken);
+		property item[Index:Integer]:Ttoken read get write put;default;
 
 		//	  function del(i:Integer): Integer;
-		function ins(t:Integer;s:TSymbol): Integer;
+		function ins(t:Integer;s:Ttoken): Integer;
 		function move(f,t:Integer): Integer;
 	private
 		function structureisstr(position:Integer;arg:TStringDynArray):Integer;
@@ -176,7 +176,6 @@ type
     MGInsb2: TMenuItem;
     MGInsb3: TMenuItem;
     MGInsb4: TMenuItem;
-    MGInsb5: TMenuItem;
     MGInsb6: TMenuItem;
 	Panel3: TPanel;
 	Label2: TLabel;
@@ -195,24 +194,25 @@ type
 	EditVarBlock: TEdit;
 	Label3: TLabel;
 	MGIns3: TMenuItem;
-    MGIns4: TMenuItem;
-    MGComment: TMenuItem;
+	MGIns4: TMenuItem;
+	MGComment: TMenuItem;
 	MGInsb7: TMenuItem;
-    MSExp: TMenuItem;
-    KEY: TMemo;
-    N001: TMenuItem;
-    x01: TMenuItem;
+	MSExp: TMenuItem;
+	KEY: TMemo;
+	N001: TMenuItem;
+	x01: TMenuItem;
 	r0xxx1: TMenuItem;
-		procedure MConvClick(Sender: TObject);
-		procedure MSaveClick(Sender: TObject);
-		procedure MLoadClick(Sender: TObject);
-		procedure MCutClick(Sender: TObject);
-		procedure MCopyClick(Sender: TObject);
-		procedure MPasteClick(Sender: TObject);
-		procedure MendClick(Sender: TObject);
-		procedure FormCreate(Sender: TObject);
-		procedure CGSetEditText(Sender: TObject; ACol, ARow: Integer;
-		  const Value: string);
+	e0xxxxxx1: TMenuItem;
+	N1: TMenuItem;
+	procedure MConvClick(Sender: TObject);
+	procedure MSaveClick(Sender: TObject);
+	procedure MLoadClick(Sender: TObject);
+	procedure MCutClick(Sender: TObject);
+	procedure MCopyClick(Sender: TObject);
+	procedure MPasteClick(Sender: TObject);
+	procedure MendClick(Sender: TObject);
+	procedure FormCreate(Sender: TObject);
+	procedure CGSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
 	procedure FormDestroy(Sender: TObject);
 	procedure MFolderClick(Sender: TObject);
 	procedure ButtonT0Click(Sender: TObject);
@@ -232,10 +232,10 @@ type
 
 	public
 	   inidir:String;
-		function statements(breakchar:string):TSymbol;
+		function statements(breakchar:string):Ttoken;
 
 	end;
-	function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
+	function tknget(var pos:pchar;str:pchar;strdeli:CHAR):TtokenType;
 
 
 
@@ -252,19 +252,19 @@ var
 	b          :TButton;
 	p          :pchar;
 	pp         :pchar;
-	dstt       :TSymbol;
+	dstt       :Ttoken;
 	dsrc       :STRING;
 	s          :STRING;
 	ss         :STRING;
 	sss        :STRING;
-	symtyp     :TSymbolType;
+	tkntyp     :TtokenType;
 	modecell   :boolean;
 	modesheet  :boolean;
 	col,row    :Integer;
 	indent     :Integer;
 	ia         :TIntArray;
 //	StrArray   :TArray<string>;
-//	symArray   :TArray<TSymbol>;
+//	tknArray   :TArray<Ttoken>;
 	come       :STRING;
 	str        :STRING;
 	varstr :STRING;
@@ -280,10 +280,10 @@ implementation
 
 uses
 	strutils
-	,IniFiles ,Masks,Clipbrd, Winapi.ShellAPI;
+	,IniFiles ,Masks,Clipbrd, Winapi.ShellAPI,Vcl.FileCtrl;
 
 const
-	SYMMAXLEN=1024;
+	TKNMAXLEN=1024;
 	NULLNULL =#0#0;
 	CR       =#13;
 	LF       =#10;
@@ -297,13 +297,41 @@ var PCol, PRow: Integer;
 	txtfile:string;
 	csvfile:string;
 	regmatchstr:TStringDynArray;
+	tkn :Ttoken;
+	ptkn:Ptoken;
 
 
-
-function TStringSelf.this:TStringList;
+procedure TFormCBtoDEL.FormCreate(Sender: TObject);
 begin
-	exit(self);
+   Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.INI' ) );
+   inidir    := Ini.ReadString( '', 'inidir', inidir );
+
+
+	CG :=TGrid.CreateEX(CG);
+//	CG.OnKeyDown:=CGKeyDown;
+	MLoadClick(sender);
+	PCol:=CG.Col;
+	PRow:=CG.Row;
 end;
+
+
+
+procedure TFormCBtoDEL.FormDestroy(Sender: TObject);
+var M:TMenuItem;
+begin
+	Ini.WriteInteger('','Width', Width );
+	Ini.WriteInteger('','Height', Height );
+	Ini.WriteInteger('','PanelTop.Height',PanelTop.Height);
+	Ini.WriteInteger('','PanelDel.Width',PanelDel.Width);
+
+	for m in MSet do Ini.WriteBool( '',M.Caption,M.Checked);
+	Ini.Free;
+end;
+
+
+
+
+
 
 function dmessage(m:string):TModalResult;
 begin
@@ -333,33 +361,24 @@ begin
 	if ACol=CG.ColCount-1 then CG.ColCount:=CG.ColCount+1;
 end;
 
-procedure TFormCBtoDEL.FormCreate(Sender: TObject);
-begin
-	CG :=TGrid.CreateEX(CG);
-//	CG.OnKeyDown:=CGKeyDown;
-	MLoadClick(sender);
-	PCol:=CG.Col;
-	PRow:=CG.Row;
-end;
-
-
-
-procedure TFormCBtoDEL.FormDestroy(Sender: TObject);
-var M:TMenuItem;
-begin
-	Ini.WriteInteger('','Width', Width );
-	Ini.WriteInteger('','Height', Height );
-	Ini.WriteInteger('','PanelTop.Height',PanelTop.Height);
-	Ini.WriteInteger('','PanelDel.Width',PanelDel.Width);
-
-	for m in MSet do Ini.WriteBool( '',M.Caption,M.Checked);
-end;
 
 procedure TFormCBtoDEL.MLoadClick(Sender: TObject);
 var SL:TStringDynArray;
 	i:integer;
 	M:TMenuItem;
+
+	procedure MemoTabChange(memo : TRichEdit; width : longint);
+	begin
+		memo.SelectAll;
+		width := width * LoWord(GetDialogBaseUnits) div 2;
+		memo.Perform(EM_SETTABSTOPS, 1, longint(@width));
+		memo.Invalidate;
+	end;
 begin
+
+	MemoTabChange(CB,4);
+	MemoTabChange(DEL,4);
+
 	varblock:=SplitString(EditVarBlock.text,' ');
 	lineblock:=SplitString(EditLineBlock.text,' ');
 
@@ -527,26 +546,26 @@ begin
 end;
 
 
-function TFormCBtoDEL.statements(breakchar:string):TSymbol;
+function TFormCBtoDEL.statements(breakchar:string):Ttoken;
 var
-	sym :TSymbol;
-	syms:TSymbols;
-	psym:PSymbol;
+	tkns:Ttokens;
+	stkn:Ttoken;
 	s宣言ブロック:boolean;
 	sブロック名:string;
 	sブロックタイプ:string;
+
 	イフ:boolean;
 	次へ:boolean;
-	prevsymp:PChar;
+	prevtknp:PChar;
 
-	procedure symback;
+	procedure tknback;
 	begin
 		p:=gprevp;
 	end;
 
-	function getsymbol:TSymbol;
+	function gettoken:Ttoken;
 	var
-		t:TSymbolType;
+		t:TtokenType;
 		s:string;
 		ret:string;
 		src:string;
@@ -556,20 +575,20 @@ var
 		procedure get;
 		begin
 			prevp:=p;
-			t:=symget(p,buf,'''');
+			t:=tknget(p,buf,'''');
 			s:=buf;
-			if s='const' then t:=symQualifier;
-//				if s='&' then t:=symQualifier else
-//				if s='*' then t:=symQualifier ;
+			if s='const' then t:=tknQualifier;
+//				if s='&' then t:=tknQualifier else
+//				if s='*' then t:=tknQualifier ;
 		end;
-//		procedure ifadd(tt:TSymbolType);
+//		procedure ifadd(tt:TtokenType);
 //		begin
 //			if t<>tt then exit;
 //			ret:=s;
 //			get;
 //			ret:=ret+' '+s;
 //		end;
-//		procedure add(tt:TSymbolType);
+//		procedure add(tt:TtokenType);
 //		begin
 //			if t<>tt then exit;
 //			ret:=s;
@@ -591,16 +610,16 @@ var
 			function comp:boolean;
 			var ss:string;
 				pp:PChar;
-				tt:TSymbolType;
+				tt:TtokenType;
 			begin
 				pp:=PChar(par);
 				result:=true;
-				p:=prevsymp;
+				p:=prevtknp;
 				src:='';
 				repeat
 					tt:=t;
 					get;
-					symget(pp,buf,'''');
+					tknget(pp,buf,'''');
 					ss:=buf;
 					if ss='' then begin//先読み分戻す
 						p:=prevp;
@@ -618,7 +637,7 @@ var
 //				p:=PChar(par);
 //				result:=s;
 //				while(p[0]<>#0)do begin
-//					t:=symget(p,buf,'''');
+//					t:=tknget(p,buf,'''');
 //					get;
 //					result:=result+s;
 //				end;
@@ -645,7 +664,7 @@ var
 				if comp then begin
 					if MSDvrow.Checked then CG.Selection:=TGridRect(Rect(1,r,3,r));
 					if rep='' then begin
-						t:=symError;
+						t:=tknError;
 						p:=prevp;
 					end;
 					ret:=rep;
@@ -655,14 +674,14 @@ var
 		end;
 	begin
 		repeat
-			prevsymp:=p;
+			prevtknp:=p;
 			if not replacegrid then begin
-				p:=prevsymp;
+				p:=prevtknp;
 				get;
 				src:=s;
 				ret:=s;
 			end;
-			if t<>symError then
+			if t<>tknError then
 				break;
 		until (p[0]=#0);
 
@@ -674,11 +693,11 @@ var
 
 
 
-	function reconstruct:TSymbol;
+	function reconstruct:Ttoken;
 	var
-		sym :TSymbol;
-		p :PSymbol;
-		stype :TSymbolType;
+		tkn :Ttoken;
+		p :Ptoken;
+		stype :TtokenType;
 		dstt:STRING;
 		strc:STRING;
 		ssrc:STRING;
@@ -695,20 +714,26 @@ var
 
 		function gets(i:integer):string;   //
 		begin
-			result:=syms[i].str+syms[i].cmt;
+			result:=tkns[i].str+tkns[i].cmt;
 		end;
+
 
 		function getstr(i:integer):string;   //
 		begin
-			result:=syms[posstart+i].str+syms[posstart+i].cmt;
+			result:=tkns[posstart+i].str+tkns[posstart+i].cmt;
+		end;
+
+		function getstradd(i:integer;s:string):string;   //
+		begin
+			result:=tkns[posstart+i].str+s+tkns[posstart+i].cmt;
 		end;
 
 		function getsrc(i:integer):string;   //
 		begin
-			p:=@syms.items[posstart+i];
-//			if p.typ=symCBlock then begin
+			p:=@tkns.items[posstart+i];
+//			if p.typ=tknCBlock then begin
 //				result:='{ '+p.src+' }';
-//			end else if syms[i].typ=symKBlock then
+//			end else if tkns[i].typ=tknKBlock then
 //				result:=' ( '+p.src+' )'
 //			else
 				result:=p.src+p.cmt;
@@ -717,16 +742,16 @@ var
 		function get(i:integer):string;   //
 		begin
 			inc(i,posstart);
-			if syms[i].typ=symBlock then begin
+			if tkns[i].typ=tknBlock then begin
 				result:=tryaddstr(gets(i),';')+CRLF;  //existstr(gets(i),'',';'+CRLF);
 
-			end else if syms[i].typ=symCBlock then begin
+			end else if tkns[i].typ=tknCBlock then begin
 				result:='begin'+CRLF+gets(i)+'end;'+CRLF;
 
-			end else if syms[i].typ=symKBlock then
-				result:='('+syms[i].str+')'+syms[i].cmt
+			end else if tkns[i].typ=tknKBlock then
+				result:='('+tkns[i].str+')'+tkns[i].cmt
 			else
-				result:=syms[i].convstr+syms[i].cmt;
+				result:=tkns[i].convstr+tkns[i].cmt;
 		end;
 
 		function incget(i:integer):string;
@@ -737,14 +762,14 @@ var
 
 		function incgetval(i:integer):string;
 		begin
-			result:=syms[posstart+i].str;
+			result:=tkns[posstart+i].str;
 			valname:=result;
 			inc(pos);
 		end;
 
 		function incgetsrc(i:integer):string;
 		begin
-			result:=syms[posstart+i].str;
+			result:=tkns[posstart+i].str;
 			inc(pos);
 		end;
 
@@ -752,8 +777,8 @@ var
 		var i:integer;
 		begin
 			result:='';
-			for i:=posstart+pos to syms.hi do begin
-//					if (i=syms.hi)and(syms[i].str=';') then break;
+			for i:=posstart+pos to tkns.hi do begin
+//					if (i=tkns.hi)and(tkns[i].str=';') then break;
 
 				if result<>'' then result:=result+' ';
 				result:=result+get(i-posstart);
@@ -768,7 +793,7 @@ var
 		function inccat:string;   //最後までくっつける
 		begin
 			result:='';
-			while pos<=syms.hi do begin
+			while pos<=tkns.hi do begin
 				if result<>'' then result:=result+' ';
 				result:=result+incget(pos-posstart);
 			end;
@@ -778,22 +803,22 @@ var
 		begin
 			result:='';
 			pos:=i;
-			while pos<=syms.hi do begin
+			while pos<=tkns.hi do begin
 				if result<>'' then result:=result+' ';
 				result:=result+get(pos);
 				inc(pos);
-				if get(pos-1)=s then break;
+				if tkns[pos].str=s then break;
 			end;
 		end;
 
 		function sis(a:string):integer;
 		begin
 			if trim(a)='' then exit(0);
-			result:=syms.structureisstr(posstart,SplitString(a,'｜'));
+			result:=tkns.structureisstr(posstart,SplitString(a,'｜'));
 		end;
 
 
-		function replacegrid(var ret:string;var stype :TSymbolType):boolean;
+		function replacegrid(var ret:string;var stype :TtokenType):boolean;
 		var c,r:integer;
 		var lab:string;
 		var par:string;
@@ -849,8 +874,8 @@ var
 				rep:=StringReplace(rep,'｜',CRLF,[rfReplaceAll]);
 				regmtc:=TRegEx.Matches(rep,'%([a-zA-Z]*)([0-9]*)([^%]?)([^%]*)%');
 				rm:=0;
-				rs:='';
 				for rc:=0 to regmtc.Count-1 do begin
+					rs:='';
 					regmt:=regmtc[rc];
 					ri:=regmt.Index-1+rm;
 					if regmt.Groups.Count<>5 then continue;
@@ -860,6 +885,10 @@ var
 					subd:=regmt.Groups[3].value;
 					subr:=regmt.Groups[4].value;
 
+					if (t='CR')and(c>=0) then begin
+						if MatchesMask(tkns[posstart+c].cmt,'*'+CRLF) then
+							rs:=CRLF;
+					end else
 					if t='CR' then rs:=CRLF else
 					if t='E'  then rs:=indenttab+'end;' else
 					if t='T'  then rs:=TAB   else
@@ -878,7 +907,10 @@ var
 					if (t='c') and (subd<>'') then rs:=inccatfor(c,subd) else
 					if t='c' then begin pos:=c; rs:=inccat; end else
 					if t='o' then rs:=getsrc(c) else
-					if t='s' then rs:=getstr(c) else
+					if t='s' then begin
+						rs:=getstradd(c,subd+subr);
+
+					end else
 					if subd<>'' then begin
 						subc:=StrToIntDef(regmt.Groups[4].value,0);
 						rs:=trim(split(getstr(c),subc-1,subd));
@@ -914,13 +946,14 @@ var
 
 					replace(vrv);
 					replace(rep);
-//					idx:=rep.IndexOf('var');
+//					idx:=rep.IndexOf('var');　
 //					if idx>0 then begin
 //						varstr:=varstr+rep.Substring(idx)+CRLF;
 //						rep:=rep.Remove(idx);
 //					end;
 
-					if pos<>syms.count then inc(pos,inccnt);
+//					if pos<>tkns.count then inc(pos,inccnt);
+					pos:=posstart+inccnt;
 
 					if 宣言ブロック then begin
 					end else begin
@@ -929,7 +962,7 @@ var
 						end;
 					end;
 //						if rep='' then begin
-//							stype:=symVar;//追加無し
+//							stype:=tknVar;//追加無し
 //							inc(pos); //;を飛ばす
 //						end;
 					ret:=rep;
@@ -949,8 +982,8 @@ var
 	begin
 		dstt:='';
 		come:='';
-		strc:=syms.structure;
-		ssrc:=syms.source;
+		strc:=tkns.structure;
+		ssrc:=tkns.source;
 		ssrc:=StringReplace(ssrc,CRLF,'',[rfReplaceAll]);
 		ssrc:=StringReplace(ssrc,TAB,'',[rfReplaceAll]);
 		if MSLSource.Checked then LOG.Lines.add(indentstr(ssrc));
@@ -958,17 +991,17 @@ var
 		pos:=0;
 		bindent:=indent;
 		try
-		for i := 0 to syms.hi do begin
+		for i := 0 to tkns.hi do begin
 			if i<pos then continue;
 			pos:=i;
-			sym:=syms[i];
-			s:=sym.convstr;
+			tkn:=tkns[i];
+			s:=tkn.convstr;
 			if s=CRLF then begin
 				posstart:=pos;
 				continue;
 			end;
 			posstart:=pos;
-			stype:=symVoid;
+			stype:=tknVoid;
 			valname:='';
 			s:='';
 
@@ -977,10 +1010,10 @@ var
 			end else
 			if sis('(*)')>0 then begin //
 				s:=incget(0);
-				stype:=symKBlock;
+				stype:=tknKBlock;
 			end else
 			if sis('{*}')>0 then begin //
-				stype:=symCBlock;
+				stype:=tknCBlock;
 
 				s:=incget(0);
 //				s:=s+';'+CRLF;
@@ -992,10 +1025,10 @@ var
 				s:=incget(0);
 			end;
 
-			if stype=symVar then else
-			if stype=symFunction then adds(dstt,s+';'+CRLF) else
-			if stype=symLabel then adds(dstt,s) else
-			if stype=symCBlock then adds(dstt,s) else
+			if stype=tknVar then else
+			if stype=tknFunction then adds(dstt,s+';'+CRLF) else
+			if stype=tknLabel then adds(dstt,s) else
+			if stype=tknCBlock then adds(dstt,s) else
 				adds(dstt,s);
 		end;
 		except
@@ -1003,26 +1036,24 @@ var
 		end;
 		indent:=bindent;
 
-		result.src:=syms.source;
+		result.src:=tkns.source;
 		result.typ:=stype;
-
-//		dstt:=StringReplace(dstt,CRLF,CRLF+indenttab,[rfReplaceAll]);
 		result.str:=dstt;
 	end;
 
 
-	function symbol(const str, src: string; typ: TSymbolType): TSymbol;
+	function token(const str, src: string; typ: TtokenType): Ttoken;
 	begin
 		result.str:=str;
 		result.src:=src;
 		result.typ:=typ;
 	end;
 
-	function 配列括弧:TSymbol;
+	function 配列括弧:Ttoken;
 	var
-		ret:TSymbol;
-		DEL:TSymbol;
-		sym:TSymbol;
+		ret:Ttoken;
+		DEL:Ttoken;
+		tkn:Ttoken;
 	begin
 		DEL.src:='][';
 		DEL.str:=', ';
@@ -1030,23 +1061,23 @@ var
 			if result.str<>'' then result.add(DEL);
 
 			result.add(statements(']'));
-			if str=']' then sym:=getsymbol;
+			if str=']' then tkn:=gettoken;
 		end;
-		p:=prevsymp;
+		p:=prevtknp;
 		result.addstr('[',']');
 	end;
 
-	function クラス初期化:TSymbol;
+	function クラス初期化:Ttoken;
 	begin
 		result:=statements(';{');
-		result.typ:=symBlock;
-		if str='{' then symback;
+		result.typ:=tknBlock;
+		if str='{' then tknback;
 
 	end;
 
 
-	function 丸括弧:TSymbol;
-	var s:TSymbol;
+	function 丸括弧:Ttoken;
+	var s:Ttoken;
 	begin
 		result:=s;
 		sブロックタイプ:=ブロックタイプ;
@@ -1056,43 +1087,69 @@ var
 			result.add(s);
 			if str=')' then break;
 		end;
-		result.typ:=symKBlock;
+		result.typ:=tknKBlock;
 		if str=';' then result.addstr('',' ');
-		syms.add(result);
+		tkns.add(result);
 		ブロックタイプ:=sブロックタイプ;
 	end;
 
-	procedure symnext;
-	var s:TSymbol;
+
+	procedure tknnext;
+	var s:Ttoken;
 	begin
 		gprevp:=p;
-		sym:=getsymbol;
-		psym:=syms.last;
-		if sym.typ=symReserved then begin
+		tkn:=gettoken;
+		ptkn:=tkns.last;
+		if tkn.typ=tknReserved then begin
 			while (p[0]<>#0) do begin
-				s:=getsymbol;
+				s:=gettoken;
 				if s.str='[' then begin      //配列
-					sym.add(配列括弧);
+					tkn.add(配列括弧);
 					continue;
 				end else if s.convstr='.' then begin  //メンバ参照
 					s.str:=s.convstr;
-					sym.add(s);
-					sym.typ:=symReserved;
-					s:=getsymbol;
-					if s.typ=symReserved then begin
-						sym.add(s);
+					tkn.add(s);
+					tkn.typ:=tknReserved;
+					s:=gettoken;
+					if s.typ=tknReserved then begin
+						tkn.add(s);
 						continue;
 					end else begin
-						p:=prevsymp;
+						p:=prevtknp;
 						break;
 					end;
 				end else begin
-					p:=prevsymp;
+					p:=prevtknp;
 					break;
 				end;
 			end;
 		end;
-		str:=sym.str;
+		str:=tkn.str;
+	end;
+
+	procedure 改行保持next(back:boolean);
+	var ss:string;
+	begin
+		stkn:=tkn;
+		ss:=str;
+		repeat
+			gprevp:=p;
+			tkn:=gettoken;
+			ptkn:=tkns.last;
+			if str=CRLF then begin
+				ptkn.cmt:=ptkn.cmt+CRLF;
+				continue;
+			end else if tkn.typ=tknComment then begin
+				ptkn.cmt:=ptkn.cmt+tkn.str;
+			end else begin
+				if back then begin
+					tknback;
+					tkn:=stkn;
+					str:=ss;
+				end;
+				break;
+			end;
+		until str<>CRLF;
 	end;
 
 	function 式変換(最初:boolean): boolean;
@@ -1108,28 +1165,28 @@ var
 			if ipos>High(演算子) then exit(false);
 
 			result:=カッコ(cpos1,ipos+1);
-			if MatchText(sym.str, 演算子[ipos]) then begin
+			if MatchText(tkn.str, 演算子[ipos]) then begin
 				repeat
-					syms.add(sym);
-					symnext;
-					if sym.str='(' then begin
+					tkns.add(tkn);
+					tknnext;
+					if tkn.str='(' then begin
 						丸括弧;
-						symnext;
+						tknnext;
 					end else begin
-						syms.add(sym);
-						symnext;
-						if sym.str='(' then begin
+						tkns.add(tkn);
+						tknnext;
+						if tkn.str='(' then begin
 							丸括弧;
-							symnext;
+							tknnext;
 
 						end;
 
 					end;
-					result:=カッコ(syms.hi,ipos+1);
-				until not MatchText(sym.str, 演算子[ipos]);
-				cpos2:=syms.count+1;
-				syms.ins(cpos1,symbol('(','(',symDelimiter));
-				syms.ins(cpos2,symbol(')',')',symDelimiter));
+					result:=カッコ(tkns.hi,ipos+1);
+				until not MatchText(tkn.str, 演算子[ipos]);
+				cpos2:=tkns.count+1;
+				tkns.ins(cpos1,token('(','(',tknDelimiter));
+				tkns.ins(cpos2,token(')',')',tknDelimiter));
 				最初:=false;
 				あった:=true;
 				result:=true;
@@ -1137,18 +1194,18 @@ var
 		end;
 	begin
 		if not MSExp.checked then exit(false);
-		if sym.typ<>symReserved then
-			if sym.typ<>symNumber then
+		if tkn.typ<>tknReserved then
+			if tkn.typ<>tknNumber then
 				 exit(false);
 		count:=0;
 		演算子:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<=']];
 
-		syms.add(sym);
-		cpos1:=syms.hi;
-		symnext;
-		if sym.str='(' then begin//関数
+		tkns.add(tkn);
+		cpos1:=tkns.hi;
+		tknnext;
+		if tkn.str='(' then begin//関数
 			丸括弧;
-			symnext;
+			tknnext;
 		end;
 		if breakchar.Contains(str) then exit(true);
 		あった:=false;
@@ -1159,7 +1216,7 @@ var
 
 
 	function 複合文:Integer;
-	var s:TSymbol;
+	var s:Ttoken;
 	begin
 		result:=0;
 
@@ -1167,13 +1224,13 @@ var
 		varstr:='';
 		while p[0]<>#0 do begin
 			s.add(statements(';}'));
-//			if str=';' then syms.add(sym);
-			if str='}' then break;
+//			if str=';' then tkns.add(tkn);
+			if tkn.str='}' then break;
 		end;
-		s.typ:=symCBlock;
+		s.typ:=tknCBlock;
 		s.indent;
-//		sym.addstr(CRLF);
-		syms .   add(s);
+//		tkn.addstr(CRLF);
+		tkns .   add(s);
 		dec(indent);
 	end;
 
@@ -1185,13 +1242,13 @@ var
 		改行まで:=false;
 		次へ:=false;
 		while (p[0]<>#0) do begin
-			symnext;
+			tknnext;
 
-			if sym.typ=symComment then begin
-//					if syms.count>0 then //前の要素に足す
-//				dsrc:=dsrc+sym.str;
+			if tkn.typ=tknComment then begin
+//					if tkns.count>0 then //前の要素に足す
+//				dsrc:=dsrc+tkn.str;
 				if pline=line then begin
-					psym.cmt:=sym.str;
+					ptkn.cmt:=tkn.str;
 					continue;
 				end;
 				continue;
@@ -1202,55 +1259,75 @@ var
 			end else if MatchStr(str,varblock) then begin
 				宣言ブロック:=true;
 				ブロックタイプ:=str;
-				syms.add(sym);
-				symnext;
+				tkns.add(tkn);
+				tknnext;
 				if str<>'{' then begin
 					ブロック名:=str;
-					syms.add(sym);
+					tkns.add(tkn);
 					continue;
 				end;
 			end;
 
+
 			if MatchStr(str,['if','while','for']) then begin
-				syms.add(sym);
-				symnext;
+				tkns.add(tkn);
+				tknnext;
 				if str='(' then begin
 					丸括弧;
-					symnext;
+					改行保持next(false);
 					if str='{' then begin
-						複合文
+						tknnext;
+						複合文;
 					end else begin;
 						inc(indent);
-						symback;
-						sym:=statements(';');
-						sym.typ:=symBlock;
-						sym.indent;
-						syms.add(sym);
+						tknback;
+						tkn:=statements(';');
+						tkn.typ:=tknBlock;
+						tkn.indent;
+						tkns.add(tkn);
 						dec(indent);
+					end;
+					tknnext;
+					if str='else' then begin
+						tkns.add(tkn);
+						改行保持next(false);
+						if str='{' then begin
+							tknnext;
+							複合文;
+						end else begin;
+							inc(indent);
+							tknback;
+							tkn:=statements(';');
+							tkn.typ:=tknBlock;
+							tkn.indent;
+							tkns.add(tkn);
+							dec(indent);
+						end;
 					end;
 				end;
 				continue;
 
 			end else if str='do' then begin
-				syms.add(sym);
-				symnext;
+				tkns.add(tkn);
+				tknnext;
 				if str='{' then begin
 					複合文
 				end else begin;
 					inc(indent);
-					symback;
-					sym:=statements(';');
-					sym.typ:=symBlock;
-					syms.add(sym);
+					tknback;
+					tkn:=statements(';');
+					tkn.typ:=tknBlock;
+					tkns.add(tkn);
 					dec(indent);
 				end;
 				if str='(' then begin
 					丸括弧;
-					symnext;
+					tknnext;
 				end;
 				continue;
 
-			end else if 式変換(true) then begin
+			end else
+			if 式変換(true) then begin
 //				if breakchar.Contains(str) then break;
 //				continue;
 			end else if str=CRLF then begin
@@ -1258,34 +1335,34 @@ var
 				if 改行まで then begin
 					break;
 				end;
-				psym.cmt:=psym.cmt+CRLF;
+				ptkn.cmt:=ptkn.cmt+CRLF;
 				continue;
 			end else if str='(' then begin
 				丸括弧;
 				continue;
 
 			end else if str=':' then begin
-				syms.add(sym);
-				syms.add(クラス初期化);
+				tkns.add(tkn);
+				tkns.add(クラス初期化);
 				continue;
 			end;
-			if str=',' then begin
-				sym.str:=';';
-				syms.add(sym);
-				if not breakchar.Contains(str) then continue;
-			end;// else
+//			if str=',' then begin
+//				tkn.str:=';';
+//				tkns.add(tkn);
+//				if not breakchar.Contains(str) then continue;
+//			end;// else
 			if breakchar.Contains(str) then break;
 			if str='{' then begin
 				複合文;
 				continue;
 			end;
 
-			syms.add(sym);
+			tkns.add(tkn);
 			pline:=line;
 
 			if not 改行まで then begin
 				if str=':' then begin
-					if psym.typ=symKBlock then continue;    //前カッコはメンバ初期化初期化
+					if ptkn.typ=tknKBlock then continue;    //前カッコはメンバ初期化初期化
 					if 宣言ブロック then continue;//label:
 					break;
 				end;
@@ -1299,18 +1376,45 @@ begin
 	s宣言ブロック:=宣言ブロック;
 	sブロック名:=ブロック名;
 
-	syms.null.clear;
+	tkns.null.clear;
 	文;
-	if breakchar.Contains(';') then begin
-		if str=';' then begin
-			syms.add(sym);
-			symnext;
-			if str=CRLF then
-				psym.cmt:=psym.cmt+CRLF
-			else
-				symback;
+	if breakchar.Contains(tkn.str) then begin
+		if str=',' then begin
+
+			tkns.add(tkn);
+
+		end else if tkn.str=';' then begin
+			tkns.add(tkn);
+			改行保持next(true);
+//			if str='else' then begin
+//				文;
+//			end;
+//			if tkn.str=';' then begin
+//				tkns.add(tkn);
+//				改行保持next;
+//			end;
+
+//			tknnext;
+//			if tkn.typ=tknComment then
+//				ptkn.cmt:=tkn.str
+//			else if str=CRLF then
+//				ptkn.cmt:=ptkn.cmt+CRLF
+//			else if str='else' then begin
+//				tkns.add(tkn);
+//				文;
+//			end else
+//				tknback;
 		end;
-    end;
+//		if tkn.str='}' then begin
+//			tknnext;
+//			if tkn.typ=tknComment then
+//				ptkn.cmt:=tkn.str
+//			else if str=CRLF then
+//				ptkn.cmt:=ptkn.cmt+CRLF
+//			else
+//				tknback;
+//		end;
+	end;
 
 
 	result:=reconstruct;
@@ -1358,7 +1462,7 @@ begin
 
 
 			dsrc:=dsrc+dstt.str;
-			dsrc:=dsrc+CRLF;
+//			dsrc:=dsrc+CRLF;
 		end;
 		if varstr<>'' then begin
 			dsrc:=indentcr+varstr+dsrc;
@@ -1435,17 +1539,21 @@ end;
 
 procedure TFormCBtoDEL.MFolderClick(Sender: TObject);
 var
-//  Dialog: IOTAKeyboardDiagnostics
-s:string;
+  RootFolder   : String;
+  SelectFolder : String;
 begin
-//  if Supports(BorlandIDEServices, IOTAKeyboardDiagnostics, Dialog) then
-//	Dialog.KeyTracing := Debugging;
-//s:=GetActiveProject.FileName;
-	MessageDlg(inidir+CRLF+Application.ExeName, mtInformation, [mbYes], 0);
-	if inidir='' then
-		ShellExecute(Handle, nil,PChar(inidir),'', nil, SW_SHOW)
-	else
-		ShellExecute(Handle, nil,PChar(ExtractFileDir(Application.ExeName)),'', nil, SW_SHOW)
+	 RootFolder := '';
+	if inidir='' then begin
+		  SelectFolder   := ExtractFileDir(Application.ExeName);
+	end else begin
+		  SelectFolder   := inidir;
+	end;
+	 if SelectDirectory('設定パス:'+inidir+CRLF+'実行パス:'+Application.ExeName,
+		RootFolder,	SelectFolder,[sdNewUI, sdNewFolder, sdShowEdit],Self) then begin
+		inidir:=SelectFolder;
+		Ini.WriteString( '', 'inidir',inidir);
+
+	 end;
 
 end;
 
@@ -1529,31 +1637,31 @@ begin
 	TGrid(CG).Paste;
 end;
 
-{ TSymbols }
+{ Ttokens }
 
-function TSymbols.add(s:TSymbol):Integer;
+function Ttokens.add(s:Ttoken):Integer;
 begin
 	SetLength(self.items,Length(self.items)+1);
 	self[Length(self.items)-1]:=s;
 	result              :=Length(self.items);
 end;
 
-function TSymbols.clear:Integer;
+function Ttokens.clear:Integer;
 begin
 	SetLength(self.items,0);
 end;
 
-function TSymbols.count:Integer;
+function Ttokens.count:Integer;
 begin
 	result:=Length(self.items);
 end;
 
-function TSymbols.hi:Integer;
+function Ttokens.hi:Integer;
 begin
 	result:=High(self.items);
 end;
 
-procedure TSymbol.indent;
+procedure Ttoken.indent;
 begin
 	str:=tab+str;
 	if MatchesMask(str,'*'+CRLF) then    //最後の改行を保持
@@ -1563,7 +1671,7 @@ begin
 
 end;
 
-function TSymbols.ins(t: Integer; s: TSymbol): Integer;
+function Ttokens.ins(t: Integer; s: Ttoken): Integer;
 var i:integer;
 begin
 	if t<0 then t:=0;
@@ -1577,16 +1685,16 @@ begin
 	self.items[t]:=s;
 end;
 
-function TSymbols.last: PSymbol;
+function Ttokens.last: Ptoken;
 begin
 	if count=0 then exit(@null);
 	result:=@self.items[count-1];
 end;
 
 
-function TSymbols.move(f, t: Integer): Integer;
+function Ttokens.move(f, t: Integer): Integer;
 var i:integer;
-	s:TSymbol;
+	s:Ttoken;
 begin
 	s:=self.items[f];
 	if f>t then begin
@@ -1599,28 +1707,28 @@ begin
 	self.items[t]:=s;
 end;
 
-function TSymbols.getstring(Index:Integer):string;
+function Ttokens.getstring(Index:Integer):string;
 begin
 	if index>High(self.items) then exit('');
 	if index<0 then exit('');
 	result:=self.items[index].str;
 end;
 
-procedure TSymbols.putstring(Index:Integer;const s:string);
+procedure Ttokens.putstring(Index:Integer;const s:string);
 begin
 	if index>High(self.items) then exit;
 	if index<0 then exit;
 	self.items[index].str:=s;
 end;
 
-function TSymbols.get(Index:Integer):TSymbol;
+function Ttokens.get(Index:Integer):Ttoken;
 begin
 	if index>High(self.items) then exit(null);
 	if index<0 then exit(null);
 	result:=self.items[index];
 end;
 
-procedure TSymbols.put(Index:Integer;const s:TSymbol);
+procedure Ttokens.put(Index:Integer;const s:Ttoken);
 begin
 	if index>High(self.items) then exit;
 	if index<0 then exit;
@@ -1628,29 +1736,29 @@ begin
 end;
 
 
-function TSymbols.source: string;
-var sym:TSymbol;
+function Ttokens.source: string;
+var tkn:Ttoken;
 	s:string;
 begin
-	for sym in self.items do begin
-		s:=sym.src;
-//		if sym.typ=symBlock        then s:=s+';';
-		if sym.typ=symKBlock       then s:=' ( '+s+' ) ';
-		if sym.typ=symCBlock       then s:=' { '+s+' } ';
+	for tkn in self.items do begin
+		s:=tkn.src;
+//		if tkn.typ=tknBlock        then s:=s+';';
+		if tkn.typ=tknKBlock       then s:=' ( '+s+' ) ';
+		if tkn.typ=tknCBlock       then s:=' { '+s+' } ';
 
 		if result='' then result:=s else result:=result+' '+s;
 	end;
 end;
 
-function TSymbols.structure: string;
-var sym:TSymbol;
+function Ttokens.structure: string;
+var tkn:Ttoken;
 begin
-	for sym in self.items do begin
-		if result='' then result:=sym.typestr else result:=result+' '+sym.typestr;
+	for tkn in self.items do begin
+		if result='' then result:=tkn.typestr else result:=result+' '+tkn.typestr;
 	end;
 end;
 
-function TSymbols.structureis(position:integer;arg: array of TSymbolType):boolean;
+function Ttokens.structureis(position:integer;arg: array of TtokenType):boolean;
 var
 	i:Integer;
 begin
@@ -1667,10 +1775,10 @@ end;
 
 
 
-function TSymbols.structureisstr(position:integer;arg: TStringDynArray):integer;
+function Ttokens.structureisstr(position:integer;arg: TStringDynArray):integer;
 var
 	i,j,si,di:Integer;
-	sym:TSymbol;
+	tkn:Ttoken;
 	typestr:string;
 	s:string;
 	wild:boolean;
@@ -1690,18 +1798,18 @@ var
 		result:=true;
 			if di>hi then exit(false);
 			if si>arg.hi then exit(false);
-			sym:=self[di];
-			typestr:=sym.typestr;
+			tkn:=self[di];
+			typestr:=tkn.typestr;
 
 			if MatchesMask(arg[si],'/*/') then begin
-				if regmatch(sym.src,arg[si].trim(['/']),regmatchstr) then exit(true);
+				if regmatch(tkn.src,arg[si].trim(['/']),regmatchstr) then exit(true);
 				exit(false);
 			end;
 			if arg[si]='ブロック名' then
 				arg[si]:=ブロック名;
 
 			if arg[si]='左' then begin
-				if sym.typestr<>'文' then
+				if tkn.typestr<>'文' then
 					exit(false);
 				exit(true);
 			end else
@@ -1713,11 +1821,11 @@ var
 				exit(true);
 			end;
 
-			if (sym.typ=symDelimiter)and(sym.str=arg[si]) then exit(true);
+			if (tkn.typ=tknDelimiter)and(tkn.str=arg[si]) then exit(true);
 
-			if (sym.typ=symOperator)and(sym.str=arg[si]) then exit(true);
-			if (sym.typ=symQualifier)and (sym.str=arg[si]) then exit(true);
-			if (sym.typ=symReserved)and (sym.str=arg[si]) then exit(true);
+			if (tkn.typ=tknOperator)and(tkn.str=arg[si]) then exit(true);
+			if (tkn.typ=tknQualifier)and (tkn.str=arg[si]) then exit(true);
+			if (tkn.typ=tknReserved)and (tkn.str=arg[si]) then exit(true);
 			if arg[si]<>typestr then exit(false);
 
 	end;
@@ -1765,12 +1873,12 @@ begin
 end;
 
 
-function symget(var pos:pchar;str:pchar;strdeli:CHAR):TSymbolType;
+function tknget(var pos:pchar;str:pchar;strdeli:CHAR):TtokenType;
 var
 	i,n    :Integer;
 	prechr :CHAR;
-	typ:TSymbolType;
-label getsymerror;
+	typ:TtokenType;
+label gettknerror;
 	//Identifiers識別子 Tokens複合文 Keywords予約語
 	//Punctuators区切り文字! % ^ & * ( ) – + = { } | ~ [ ] \ ; ' : " < > ? , . / #
 
@@ -1803,42 +1911,42 @@ label getsymerror;
 
 	function addchr(c:CHAR):boolean;
 	begin
-		if (n>=SYMMAXLEN) then exit(true);
+		if (n>=TKNMAXLEN) then exit(true);
 		str[n]:=c;
 		inc(n);
 		result:=false;
 	end;
 	function addchrinc:boolean;
 	begin
-		if (n>=SYMMAXLEN) then exit(true);
+		if (n>=TKNMAXLEN) then exit(true);
 		str[n]:=pos[0];
 		inc(n);
 		inc(pos);
 		result:=false;
 	end;
-	function addchrtype(t:TSymbolType):boolean;
+	function addchrtype(t:TtokenType):boolean;
 	begin
-		if (n>=SYMMAXLEN) then exit(true);
+		if (n>=TKNMAXLEN) then exit(true);
 		str[n]:=pos[0];
 		inc(n);
 		inc(pos);
-		symtyp:=t;
+		tkntyp:=t;
 		result :=false;
 	end;
-	function isadd(s:PChar;t:TSymbolType):boolean;
+	function isadd(s:PChar;t:TtokenType):boolean;
 	begin
 		result:=(strlcomp(pos,s,Length(s))=0);
 		if not result then exit;
-		symtyp:=t;
+		tkntyp:=t;
 		StrLCopy(str,s,Length(s));
 		inc(n,Length(s));
 		inc(pos,Length(s));
 	end;
-	function iscat(s:PChar;t:TSymbolType):boolean;
+	function iscat(s:PChar;t:TtokenType):boolean;
 	begin
 		result:=(strlcomp(pos,s,Length(s))=0);
 		if not result then exit;
-		symtyp:=t;
+		tkntyp:=t;
 		str[n]:=#0;
 		StrLCat(str,s,Length(str)+Length(s));
 		inc(n,Length(s));
@@ -1848,8 +1956,8 @@ label getsymerror;
 
 begin
 	n                          :=0;
-	symtyp                    :=symVoid;
-	if (pos[0]=#0) then symtyp:=symDelimiter;
+	tkntyp                    :=tknVoid;
+	if (pos[0]=#0) then tkntyp:=tknDelimiter;
 
 	while ISSPACER(pos[0]) do inc(pos);
 
@@ -1860,51 +1968,51 @@ begin
 		if ((pos[0]='0')and(pos[1]='x')) then begin
 			while ISNUMBER(pos[0])or ISALPHA(pos[0]) do begin
 				if addchrinc then break;
-				symtyp:=symNumber;
+				tkntyp:=tknNumber;
 			end
 		end else if ISNUMBER(pos[0]) then begin
 			while ISNUMBER(pos[0]) do begin
 				if addchrinc then break;
-				symtyp:=symNumber;
+				tkntyp:=tknNumber;
 			end
-		end else if isadd('//',symComment) then begin
+		end else if isadd('//',tknComment) then begin
 			while (pos[0]<>#0) do begin
-				if iscat(CRLF,symComment) then break;
+				if iscat(CRLF,tknComment) then break;
 				addchrinc;
 			end
-		end else if isadd('/*',symComment) then begin
+		end else if isadd('/*',tknComment) then begin
 			while (pos[0]<>#0) do begin
-				if iscat('*/',symComment) then break;
+				if iscat('*/',tknComment) then break;
 				addchrinc;
 			end
 
-		end else if isadd('<<=',symOperator) then begin
-		end else if isadd('>>=',symOperator) then begin
-		end else if isadd('<<',symOperator) then begin
-		end else if isadd('>>',symOperator) then begin
-		end else if isadd('++',symOperator) then begin
-		end else if isadd('--',symOperator) then begin
-		end else if isadd('==',symOperator) then begin
-		end else if isadd('!=',symOperator) then begin
-		end else if isadd('<=',symOperator) then begin
-		end else if isadd('>=',symOperator) then begin
-		end else if isadd('+=',symOperator) then begin
-		end else if isadd('-=',symOperator) then begin
-		end else if isadd('/=',symOperator) then begin
-		end else if isadd('*=',symOperator) then begin
-		end else if isadd('%=',symOperator) then begin
-		end else if isadd('&=',symOperator) then begin
-		end else if isadd('|=',symOperator) then begin
-		end else if isadd('^=',symOperator) then begin
-		end else if isadd('~=',symOperator) then begin
-		end else if isadd('&&',symOperator) then begin
-		end else if isadd('||',symOperator) then begin
-		end else if isadd('::',symOperator) then begin
-		end else if isadd('->',symOperator) then begin
+		end else if isadd('<<=',tknOperator) then begin
+		end else if isadd('>>=',tknOperator) then begin
+		end else if isadd('<<',tknOperator) then begin
+		end else if isadd('>>',tknOperator) then begin
+		end else if isadd('++',tknOperator) then begin
+		end else if isadd('--',tknOperator) then begin
+		end else if isadd('==',tknOperator) then begin
+		end else if isadd('!=',tknOperator) then begin
+		end else if isadd('<=',tknOperator) then begin
+		end else if isadd('>=',tknOperator) then begin
+		end else if isadd('+=',tknOperator) then begin
+		end else if isadd('-=',tknOperator) then begin
+		end else if isadd('/=',tknOperator) then begin
+		end else if isadd('*=',tknOperator) then begin
+		end else if isadd('%=',tknOperator) then begin
+		end else if isadd('&=',tknOperator) then begin
+		end else if isadd('|=',tknOperator) then begin
+		end else if isadd('^=',tknOperator) then begin
+		end else if isadd('~=',tknOperator) then begin
+		end else if isadd('&&',tknOperator) then begin
+		end else if isadd('||',tknOperator) then begin
+		end else if isadd('::',tknOperator) then begin
+		end else if isadd('->',tknOperator) then begin
 		end else if ISOPERATOR(pos[0]) then begin
 
 			if addchrinc then break;
-			symtyp:=symOperator;
+			tkntyp:=tknOperator;
 
 		end else if (pos[0]='''')or(pos[0]='"')or((pos[0]='L')and ((pos[1]='"')or(pos[1]=''''))) then begin
 				if (pos[0]='L') then inc(pos);
@@ -1916,7 +2024,7 @@ begin
 					if (pos[0]=strdeli) then break;
 					if (pos[0]='\')and(pos[1]=strdeli) then begin
 						inc(n);
-						if (n>=SYMMAXLEN) then break;
+						if (n>=TKNMAXLEN) then break;
 						str[n]:=strdeli;
 						inc(pos,2);
 						continue;
@@ -1926,8 +2034,8 @@ begin
 						inc(pos);
 						inc(pos);
 					end;
-					if (pos[0]=CR) then goto getsymerror;
-					if (n>=SYMMAXLEN) then break;
+					if (pos[0]=CR) then goto gettknerror;
+					if (n>=TKNMAXLEN) then break;
 					str[n]:=pos[0];
 					inc(n);
 					inc(pos);
@@ -1935,20 +2043,20 @@ begin
 				if (pos[0]=strdeli) then begin
 					addchr('''');
 					inc(pos);
-					symtyp:=symString;
+					tkntyp:=tknString;
 				end
-				else symtyp:=symError;
+				else tkntyp:=tknError;
 
 		end else if ISDELIMITER(pos[0]) then begin
 
-			symtyp:=symDelimiter;
+			tkntyp:=tknDelimiter;
 			if (StrPos(pos,#13#10)=pos) then begin
-				if ((n+1)>=SYMMAXLEN) then break;
+				if ((n+1)>=TKNMAXLEN) then break;
 				strmove(str,pos,2);
 				n  :=n+2;
 				pos:=pos+2;
 			end else begin
-				if (n>=SYMMAXLEN) then break;
+				if (n>=TKNMAXLEN) then break;
 				str[n]:=pos[0];
 				inc(n);
 				inc(pos);
@@ -1958,34 +2066,34 @@ begin
 				if ISOPERATOR(pos[0]) then break;
 				if ISDELIMITER(pos[0]) then break;
 				if ISSPACER(pos[0]) then break;
-				if (n>=SYMMAXLEN) then break;
+				if (n>=TKNMAXLEN) then break;
 				str[n]:=pos[0];
 				inc(n);
 				if (n>=255) then break;
 				inc(pos);
 			end;
-			symtyp:=symReserved;
+			tkntyp:=tknReserved;
 		end;
 
-		if (n>=SYMMAXLEN) then break;
-		if (symtyp<>symVoid) then break;
+		if (n>=TKNMAXLEN) then break;
+		if (tkntyp<>tknVoid) then break;
 		prechr:=pos[0];
 		inc(pos);
 	end;
 	//    while ISSPACER(pos[0]) do inc(pos);
 
 	str[n]:=#0;
-	result:=symtyp;
+	result:=tkntyp;
 	exit;
-getsymerror:
+gettknerror:
 	str[0]:=#0;
-	result:=symVoid;
+	result:=tknVoid;
 end;
 
 
-{ TSymbol }
+{ Ttoken }
 
-function TSymbol.convstr: string;
+function Ttoken.convstr: string;
 begin
 	if str='!=' then exit('<>');
 	if str='->' then exit('.');
@@ -2000,66 +2108,66 @@ begin
 end;
 
 
-function TSymbol.add(c: TSymbol): string;
+function Ttoken.add(c: Ttoken): string;
 begin
 	convblock;
 	str:=str+c.str;
 	src:=src+c.src;
 end;
 
-function TSymbol.addstr(const s,e: string): string;
+function Ttoken.addstr(const s,e: string): string;
 begin
 	str:=s+str+e;
 	src:=s+src+e;
 end;
 
-procedure TSymbol.clear;
+procedure Ttoken.clear;
 begin
-	typ:=symError;
+	typ:=tknError;
 	str:='';
 	src:='';
 end;
 
-function TSymbol.convblock: TSymbol;
+function Ttoken.convblock: Ttoken;
 begin
-	if typ=symBlock        then begin addstr('',';'); end;
-	if typ=symKBlock       then begin addstr('(',')'); end;
-	if typ=symCBlock       then begin addstr(' begin ',' end ');end;
+	if typ=tknBlock        then begin addstr('',';'); end;
+	if typ=tknKBlock       then begin addstr('(',')'); end;
+	if typ=tknCBlock       then begin addstr(' begin ',' end ');end;
 	exit(self);
 end;
 
-function TSymbol.typestr: string;
+function Ttoken.typestr: string;
 begin
-	if typ=symType         then exit('Type');
-	if typ=symVoid         then exit('Void');
-	if typ=symNumber       then exit('数');
-	if typ=symChar         then exit('文字');
-	if typ=symInt          then exit('Int');
-	if typ=symDouble       then exit('Double');
-	if typ=symString       then exit('文字列');
-	if typ=symStruct       then exit('Struct');
-	if typ=symSemicolon    then exit(';');
-	if typ=symColon        then exit(':');
+	if typ=tknType         then exit('Type');
+	if typ=tknVoid         then exit('Void');
+	if typ=tknNumber       then exit('数');
+	if typ=tknChar         then exit('文字');
+	if typ=tknInt          then exit('Int');
+	if typ=tknDouble       then exit('Double');
+	if typ=tknString       then exit('文字列');
+	if typ=tknStruct       then exit('Struct');
+	if typ=tknSemicolon    then exit(';');
+	if typ=tknColon        then exit(':');
 
-	if typ=symAnd          then exit('&&' );
-	if typ=symOr           then exit('||' );
-	if typ=symPointer      then exit('*' );
-	if typ=symRef          then exit('&' );
+	if typ=tknAnd          then exit('&&' );
+	if typ=tknOr           then exit('||' );
+	if typ=tknPointer      then exit('*' );
+	if typ=tknRef          then exit('&' );
 
-	if typ=symBlock        then exit('*;');
-	if typ=symKBlock       then exit('(*)');
-	if typ=symCBlock       then exit('{*}' );
-	if typ=symOperator     then exit('演算子');
-	if typ=symCommand      then exit('命令' );
-	if typ=symLabel        then exit('ラベル'   );
-	if typ=symDelimiter    then exit('区切');
-	if typ=symEnd          then exit('End'      );
-	if typ=symJump         then exit('Jump'     );
-	if typ=symQualifier    then exit('修飾子');
-	if typ=symReserved     then exit('文' );
-	if typ=symFunction     then exit('関数' );
-	if typ=symVariable     then exit('変数' );
-	if typ=symArray        then exit('配列'    );
+	if typ=tknBlock        then exit('*;');
+	if typ=tknKBlock       then exit('(*)');
+	if typ=tknCBlock       then exit('{*}' );
+	if typ=tknOperator     then exit('演算子');
+	if typ=tknCommand      then exit('命令' );
+	if typ=tknLabel        then exit('ラベル'   );
+	if typ=tknDelimiter    then exit('区切');
+	if typ=tknEnd          then exit('End'      );
+	if typ=tknJump         then exit('Jump'     );
+	if typ=tknQualifier    then exit('修飾子');
+	if typ=tknReserved     then exit('文' );
+	if typ=tknFunction     then exit('関数' );
+	if typ=tknVariable     then exit('変数' );
+	if typ=tknArray        then exit('配列'    );
 end;
 
 { TStringDynArrayHelper }
@@ -2460,456 +2568,18 @@ begin
 	result:=0
 end;
 
+function TStringSelf.this:TStringList;
+begin
+	exit(self);
+end;
+
+
+
 
 initialization
-   Ini := TIniFile.Create( ChangeFileExt( Application.ExeName, '.INI' ) );
 finalization
-	Ini.Free;
 end.
 
 
 
-
-
-
-
-
-				//命令
-//				if sis('*.Contains｜(*)') then begin   //集合
-//					s:=' ('+incgetsrc(1)+' in '+StringReplace(incgetsrc(0),'.Contains','',[])+') ';
-//
-//				end else
-
-//				if sis('if｜(*)') then begin   //if
-//					s:=incgetsrc(0)+' '+incgetsrc(1)+' then ';
-//				end else
-//				if sis('do｜{*}｜while｜(*)') then begin   //do while falseで終了   repeat until trueで終了
-//					incgetsrc(0);
-//					incgetsrc(2);
-//					s:='repeat'+CRLF+incgetsrc(1)+' until not ( '+incgetsrc(3)+' ) ';
-//				end else
-//				if sis('while｜(*)') then begin   //while
-//					s:=incgetsrc(0)+' '+incgetsrc(1)+' do ';
-//				end else
-//				if sis('return') then begin   //return 式;  exit(式)　
-//					incget(0);
-//					s:='Exit( '+inccat+' )'
-//				end else
-
-//				if sis('for｜(*)') then begin   //if
-//					incgetsrc(0);
-//					s:=incgetsrc(1);
-//					param:=SplitString(s,';');
-//					s:=makefor;
-//
-//					if (s='') then begin
-//						if sis('for｜(*)｜{*}') then begin
-//							ss:=incgetsrc(2);
-//							s:='{for} '+param[0]+';'+CRLF;
-//							s:=s+'{for}while'+' '+param[1]+' do begin'+CRLF
-//								+indenttab+TAB+param[2]+';'+CRLF
-//								+indenttab+ss
-//								+indenttab+'end;'+CRLF;
-//						end else begin
-//							s:=param[0]+';'+indentcr;
-//							s:=s+'{for}while'+' '+param[1]+' do begin'+CRLF
-//								+indenttab+TAB+param[2]+';'+CRLF
-//								+indenttab+TAB+inccat+CRLF
-//								+indenttab+'end;'+CRLF;
-//
-//						end;
-//					end;
-//
-//				end else
-
-//				if sis('enum｜文｜{*}') then begin
-//					s:=StringReplace(incgetsrc(2),':=','=',[rfReplaceAll]);
-//					s:=StringReplace(s,' , ',','+CRLF+indenttab+tab,[rfReplaceAll]);
-//					s:=incgetsrc(1)+' = ( '+CRLF+s+');'+CRLF;
-//					incgetsrc(0);
-//
-//				end else
-
-//				if sis('union｜文｜{*}') then begin
-//					incgetsrc(0);
-//					s:='case Integer of '+CRLF+incgetsrc(1)+CRLF+incgetsrc(2)+CRLF;
-//					s:=s+indenttab+'end;';
-//
-//				end else
-//				if sis('union｜{*}') then begin
-//					incgetsrc(0);
-//					s:='case Integer of '+CRLF+incgetsrc(1)+CRLF;
-//					s:=s+indenttab+'end;'+CRLF;
-//
-//				end else
-//				if sis('struct｜文｜{*}') then begin
-//					incgetsrc(0);
-//					s:='record'+CRLF+incgetsrc(1)+CRLF+incgetsrc(2)+CRLF;
-//					s:=s+indenttab+'end;'+CRLF;
-//
-//				end else
-//				if sis('struct｜{*}') then begin
-//					incgetsrc(0);
-//					s:='record'+CRLF+incgetsrc(1)+CRLF;
-//					s:=s+indenttab+'end;';
-//
-//				end else
-//
-//				if sis('class｜文｜{*}') then begin
-//					s:=incgetsrc(1)+' = '+incgetsrc(0)+CRLF+incgetsrc(2)+CRLF;
-//					s:=s+indenttab+'end;'+CRLF;
-//
-//				end else
-//				if sis('class｜文｜文｜{*}') then begin
-//					s:=incgetsrc(2)+' = '+incgetsrc(0)+CRLF+incgetsrc(3);
-//					s:=s+indenttab+'end;'+CRLF;
-//					incgetsrc(1);
-//				end else
-
-
-//				if sis('#define｜文｜(*)') then begin//#define 名前() は関数へ　一列すべて読む処理をいれる
-//					incgetsrc(0);
-//					s:='function '+incgetsrc(1)+' ( '+incgetsrc(2)+':variant ) : variant; begin ';
-//					ss:=inccat;
-//					s:=s+'exit ( '+ss+' ); end ;';
-//
-//				end else
-//				if sis('#define｜文') then begin//#define 名前 値
-//					incgetsrc(0);
-//					conststr:=incgetsrc(1);
-//					s:=conststr+' = '+inccat;
-//
-//				end else
-
-				//#define a 1*2  計算
-				//#define acb(d) 123*d  ()ありは式は関数？
-
-				//6
-//				if sis('文｜&｜文｜::｜文｜(*)') then begin //関数 参照
-//					s:='function '+incget(2)+'.'+incget(4)+' '+incget(5)+' : '+incget(0);
-//					come:=incget(1);
-//					incget(6);
-//					stype:=symFunction;
-//
-//				end else
-//				if sis('文｜*｜文｜::｜文｜(*)') then begin //関数 ポインタ
-//					s:='function '+incget(2)+'.'+incget(4)+' '+incget(5)+' : '+incget(0);
-//					come:=incget(1);
-//					stype:=symFunction;
-//					incget(6);
-//
-//				end else
-//				//4
-//				if sis('文｜&｜文｜(*)') then begin //関数 参照
-//					s:='function '+incget(2)+' '+incget(3)+' : '+incget(0);
-//					come:=incget(1);
-//					stype:=symFunction;
-//
-//				end else
-//				if sis('文｜*｜文｜(*)') then begin //関数 ポインタ
-//					s:='function '+incget(2)+' '+incget(3)+' : '+incget(0);
-//					come:=incget(1);
-//					stype:=symFunction;
-//
-//				end else
-//				if sis('修飾子｜文｜&｜文') then begin //宣言 const 参照　%0 %3 : %1
-//					s:=incget(0)+' '+incgetval(3)+' : '+incget(1);
-//					come:=incget(2);
-//				end else
-//				if sis('修飾子｜文｜*｜文') then begin //宣言 const ポインタ
-//					s:=incget(0)+' '+incgetval(3)+' : '+incget(1);
-//					come:=incget(2);
-//
-//				end else
-//				if sis('修飾子｜文｜文') then begin     //宣言 const
-//					s:=incget(0)+' '+incgetval(2)+' : '+incget(1);
-//
-//				end else
-				//3
-//				if sis('文｜&｜文') then begin //宣言 参照
-//					s:=incgetval(2)+' : '+incget(0);
-//					come:=incget(1);
-//
-//				end else
-//				if sis('文｜*｜文') then begin //宣言 ポインタ
-//					s:=incgetval(2)+' : '+incget(0);
-//					come:=incget(1);
-//
-//				end else
-//				//2
-//				if sis('文｜:') then begin  //スコープ
-//					s:=incgetsrc(0);
-//					incget(1);
-//					stype:=symLabel;
-//
-//				end else
-//				if sis('左｜文') then begin  //宣言
-//					s:=incgetval(1)+' : '+incget(0);
-//
-//				end else
-//				if sis('(*)｜文') then begin //キャスト
-//					s:=Split(incgetsrc(0),0)+'( '+incget(1)+' )'
-//
-//				end else
-//				if sis('(*)｜(*)') then begin //キャスト
-//					s:=incget(2)+' : '+incget(0);
-//				end else
-
-
-
-//				if valname<>'' then begin
-//					varstr:=varstr+indentstr(s)+';'+CRLF;
-//					if syms[pos].str='=' then //宣言の次が代入
-//						s:=split(s,0,':')+'{:'+split(s,1,':')+'}';
-//				end;
-
-//			function makefor:string;
-//			var
-//				param1:TStringDynArray;
-//				param2:TStringDynArray;
-//				param3:TStringDynArray;
-//				s,vname:string;
-//			begin
-//				param1:=SplitString(trim(param[0]),' ');
-//				param2:=SplitString(trim(param[1]),' ');
-//				param3:=SplitString(trim(param[2]),' ');
-//
-//				if (Length(param1)>=3)and(Length(param2)=3)and(Length(param3)=2)then begin
-//
-//					if param1[2]=':=' then vname:=param1[1];
-//					if param1[1]=':=' then vname:=param1[0];
-//					if vname='' then exit;            //制御変数なし
-//					if vname<>param2[0] then exit;    //制御異なる
-//					if vname<>param3[0] then exit;    //制御異なる
-//
-//					if (param2[1]='<') and (param3[1]='++') then s:=' to '     +param2[2]+'-1 do ';
-//					if (param2[1]='>') and (param3[1]='--') then s:=' downto ' +param2[2]+'+1 do ';
-//					if (param2[1]='<=') and (param3[1]='++') then s:=' to '    +param2[2]+' do ';
-//					if (param2[1]='>=') and (param3[1]='--') then s:=' downto '+param2[2]+' do ';
-//
-//					result:='for '+param[0]+s;
-//				end;
-//			end;
-////	CG.Options:=CG.Options-[goEditing];
-////	p:=ClientToScreen(Point(x, y));
-//////	CG.Dra
-////	SendMessage(CG.Handle, WM_LBUTTONDOWN, 0, MAKELPARAM(x,y));
-//
-//	CG.MouseToCell(X,Y,ACol, ARow);
-//	if Point(ACol,ARow)<>Point(PCol,PRow) then exit;
-////	CG.Options:=CG.Options+[goEditing];
-////	CG.EditorMode:=true;
-
-//	CG.MouseToCell(X,Y,ACol, ARow);
-//	if Point(PCol,PRow)=Point(ACol,ARow) then begin
-//		CG.Options:=CG.Options+[goEditing];
-//		CG.EditorMode:=true;
-//	end;
-//	if Point(CG.Col,CG.Row)=Point(ACol,ARow) then begin
-//		PCol:=ACol;
-//		PRow:=ARow;
-//	end;
-
-//						for c:= 0 to para.hi do begin
-//							ns:=inttostr(c+1);
-//							vrv:=StringReplace(vrv,'%'+ns+'%',get(c),[rfReplaceAll]);
-//							vrv:=StringReplace(vrv,'%s'+ns+'%',getstr(c),[rfReplaceAll]);
-//							vrv:=StringReplace(vrv,'%o'+ns+'%',getsrc(c),[rfReplaceAll]);
-//
-////							rep:=dstringregexreplace(rep,'%'+ns+'%',rep)
-//							regmtc := TRegEx.Matches(rep,'%'+ns+'(.)([1-9]+)%');
-//							for regmt in regmtc do
-//								if regmt.Groups.Count=3 then begin
-//									subc:=dval(regmt.Groups[2].value);
-//									subd:=regmt.Groups[1].value;
-//									subs:=regmt.Groups[0].value;
-//									subr:=trim(split(syms[c].str,subc-1,subd));
-//									rep:=StringReplace(rep,subs,subr,[rfReplaceAll]);
-//								end;
-//
-//
-//							rep:=StringReplace(rep,'%'+ns+'%',get(c),[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%s'+ns+'%',getstr(c),[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%o'+ns+'%',getsrc(c),[rfReplaceAll]);
-////							rep:=StringReplace(rep,'%e'+ns+'%',getenum(c),[rfReplaceAll]);
-//							rep2:=StringReplace(rep,'%c'+ns+'%',cat(c),[rfReplaceAll]);
-//							if rep<>rep2 then begin
-//								pos:=syms.count; //
-//								rep:=rep2;
-//								break;
-//							end;
-//							rep:=StringReplace(rep,'%CR%',CRLF,[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%E%',indenttab+'end;',[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%t%',TAB,[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%i%',indenttab,[rfReplaceAll]);
-//							rep:=StringReplace(rep,'%i+%',indenttabplus,[rfReplaceAll]);
-//							inc(pos);
-//						end;
-
-//						for c:= 0 to regmatchstr.hi do begin
-//							s:=regmatchstr.item(c);
-//							rep:=StringReplace(rep,'%x'+inttostr(c)+'%',s,[rfReplaceAll]);
-//						end;
-
-
-//			function getenum(i:integer):string;   //
-
-//			begin
-//				inc(i,posstart);
-//				result:=StringReplace(syms[i].str,':=','=',[rfReplaceAll]);
-//				result:=StringReplace(result,' , ',','+CRLF+indenttab+tab,[rfReplaceAll]);
-//			end;
-//
-
-
-
-//	procedure 式;
-
-//	var		ssym: tsymbol;
-//		procedure 論理和;
-//		var
-//			cpos:Integer;
-//
-//			procedure 論理積;
-//			var
-//				cpos:Integer;
-//
-//				procedure 否定;
-//				var
-//					ssym:TSymbol;
-//					cpos:Integer;
-//
-//					procedure 比較;
-//					var
-//						cpos: integer;
-//						ssym: tsymbol;
-//
-//						procedure 加算;
-//						var
-//							cpos: integer;
-//							ssym: tsymbol;
-//
-//							procedure 掛算;
-//							var
-//								cpos: integer;
-//								ssym: TSymbol;
-//
-//								procedure その他;
-//								var
-//									cpos: integer;
-//									ssym: TSymbol;
-//								begin
-//									cpos:=syms.hi;
-//									if MatchText(sym.str, ['+', '-']) then begin
-//									end
-//									else if MatchText(sym.str, ['(']) then begin
-//									end
-//									else begin
-//									end;
-//								end;
-//
-//							begin
-//								その他;
-//								if MatchText(sym.str, ['*', '/', '%']) then begin
-//									その他;
-//								end;
-//							end;
-//
-//						begin
-//							掛算;
-//							if MatchText(sym.str, []) then begin
-//								掛算;
-//							end;
-//
-//						end;
-//
-//					begin
-//						cpos:=syms.hi;
-//						加算;
-//						if MatchText(sym.str, ['==', '!=', '<', '>', '>=', '<=']) then begin
-//							加算;
-//						end;
-//					end;
-//
-//				begin
-//					cpos:=syms.hi;
-//					比較;
-//					if MatchText(sym.str, ['!']) then begin
-//						比較;
-//					end;
-//				end;
-//
-//			begin
-//				cpos:=syms.hi;
-//				否定;
-//				if sym.str='&&' then begin
-//					否定;
-//				end;
-//			end;
-//
-//		begin
-//			cpos:=syms.hi;
-//			論理積;
-//			if sym.str='||' then begin
-//				while sym.str='||' do begin
-//					論理積;
-//				end;
-//			end;
-//		end;
-//
-//	begin
-//		カッコ挿入位置:=-1;
-//		論理和;
-//		//		bsym:=sym;
-//		if sym.str='=' then begin
-//			syms.add(sym);
-//			symnext;
-//			論理和;
-//		end;
-//	end;
-
-//	function 演算子順序(最初:boolean): boolean;
-//	var
-//		演算子:array of TStringDynArray;
-//		優先:TStringDynArray;
-//		count:integer;
-//
-//		function カッコつける(ipos: integer): boolean;
-//		var cpos1: integer;
-//		var cpos2: integer;
-//		var あった:boolean;
-//		優先だ:boolean;
-//		begin
-//			if ipos>High(演算子) then exit(false);
-//			cpos1:=syms.hi;
-//			あった:=カッコつける(ipos+1);
-//			if MatchText(sym.str, 演算子[ipos]) then begin
-//				優先だ:=MatchText(sym.str, 優先);
-//				repeat
-//
-//					syms.add(sym);
-//					symnext;
-//					syms.add(sym);
-//					symnext;
-//					cpos2:=syms.count+1;
-//					あった:=カッコつける(ipos+1);
-//				until not MatchText(sym.str, 演算子[ipos]);
-//				inc(count);
-//				if 優先だ and あった then begin
-////					if あった then cpos2:=syms.count+1;
-//					if count>0 then begin
-//						syms.ins(cpos1,symbol('(', '(', symDelimiter));
-//						syms.ins(cpos2,symbol(')',')',symDelimiter));
-//					end;
-//				end;
-//				最初:=false;
-//				result:=true;
-//			end;
-//		end;
-//	begin
-//		count:=0;
-//		演算子:=[['||'],['&&'],['!'],['==','!=','<','>','>=','<='],['+']];
-//		優先:=['||','&&','!','==','!=','<','>','>=','<='];
-//		result:=カッコつける(0);
-//	end;
 

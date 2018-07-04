@@ -48,6 +48,8 @@ procedure TCBtoDelBinding.BindKeyboard(const BindingServices:IOTAKeyBindingServi
 begin
 	BindingServices.AddKeyBinding([TextToShortCut('Ctrl+Shift+Alt+L')],DelConv,nil);
 	BindingServices.AddKeyBinding([TextToShortCut('Ctrl+Shift+Alt+O')],DelConvEdit,nil);
+	BindingServices.AddKeyBinding([TextToShortCut('Ctrl+Alt+L')],DelConv,nil);
+	BindingServices.AddKeyBinding([TextToShortCut('Ctrl+Alt+O')],DelConvEdit,nil);
 end;
 
 procedure TCBtoDelBinding.DelConv(const Context:IOTAKeyContext;
@@ -63,14 +65,14 @@ begin
 	IDE:=(BorlandIDEServices as INTAServices);
 	IOTA:=(BorlandIDEServices as IOTAServices);
 	F:=TFormCBtoDEL.Create(nil);
-	F.inidir:=ExtractFileDir(GetActiveProject.FileName);
+	if F.inidir='' then F.inidir:=ExtractFileDir(GetActiveProject.FileName);
 	text:=Context.EditBuffer.EditBlock.text;
 	F.MLoadClick(self);
 	if trim(text)<>'' then F.CB.text:=text;
 	F.MConvClick(self);
 
 	EP:=Context.EditBuffer.EditPosition;
-	EP.InsertText(F.DEL.text);
+	EP.InsertText(Trim(F.DEL.text));
 	F.free;
 
 	BindingResult:=krHandled;
@@ -96,8 +98,7 @@ begin
 	//Project:=GetActiveProject;
 
 	F:=TFormCBtoDEL.Create(nil);
-	//	F.inidir:=IOTA.GetApplicationDataDirectory;
-	F.inidir:=ExtractFileDir(GetActiveProject.FileName);
+	if F.inidir='' then F.inidir:=ExtractFileDir(GetActiveProject.FileName);
 	//	dmessage(GetActiveProject.FileName,GetActiveProject.FileSystem);
 	text:=Context.EditBuffer.EditBlock.text;
 	F.MLoadClick(self);

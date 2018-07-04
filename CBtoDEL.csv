@@ -18,11 +18,11 @@
 置換,__fastcall,,
 置換,PACKAGE,{PACKAGE},
  , , ,
-if,if｜(*)｜{*}｜else｜{*},if %s2% then begin｜%s3%end else begin ｜%s5%end;,
-if,if｜(*)｜{*}｜else,if %s2% then begin｜%s3%end else,
-if,if｜(*)｜{*},if %s2% then begin｜%s3%end;,
-if,if｜(*)｜*;｜else,if %s2% then｜%i+%%s3%｜else ,
-if,if｜(*)｜*;,if %s2% then｜%3%,
+if,if｜(*)｜{*}｜else｜{*},if %s2 then% begin｜%s3%end else begin ｜%s5%end;｜,
+if,if｜(*)｜{*}｜else,if %s2 then% begin｜%s3%end else,
+if,if｜(*)｜{*},if %s2 then% begin｜%s3%end;｜,
+if,if｜(*)｜*;｜else｜*;,if %s2 then% %s3%%4% %5%,
+if,if｜(*)｜*;,if %s2 then%%3%,
  , , ,
 #define,#define｜文｜(*)｜式,function %s2% (%s3%:variant):variant; begin exit(%c4%);end;,
 #define,#define｜文｜式,%s2% = %c3%,
@@ -33,8 +33,8 @@ for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 < (.*) ; \1 \+\+/,for %x1% := %x2% to %x
 for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 <= (.*) ; \1 \+\+/,for %x1% := %x2% to %x3%-1 do,
 for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 > (.*) ; \1 \-\-/,for %x1% := %x2% downto %x3% do,
 for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 >= (.*) ; \1 \-\-/,for %x1% := %x2% downto %x3% do,
-for,for｜(*)｜{*},{for} %2;1%;｜while %2;2% do begin｜→%2;3%;｜%s3%end;,
-for,for｜(*)｜*;,{for} %2;1%;｜while %2;2% do begin｜→%2;3%;｜%3%end;,
+for,for｜(*)｜{*},{for} %2;1%;｜while %2;2% do begin｜→%2;3%;｜%s3%end;｜,
+for,for｜(*)｜*;,{for} %2;1%;｜while %2;2% do begin｜→%2;3%;｜%3%end;｜,
  , , ,
 do,do｜{*}｜while｜(*),repeat｜%s2%until not ( %s4% ) ,
 do,do｜*;｜while｜(*),repeat｜→%2%｜until not ( %s4% ) ,
@@ -54,15 +54,16 @@ return,return｜式,exit( %c2% );,
 return,return,exit,
  , , ,
 LABEL,LABEL*｜:,%1%:,label %1%;
-集合,/(.*)\.Contains/｜(*),( %s2% in %x1% ),
+,/(.*)(\.|->)Pos/｜(*),"pos(%s2%,%x1%)",
+,/(.*)(\.|->)Contains/｜(*),(%s2% in %x1%),
  ,,,
-関数,void｜__fastcall｜文｜::｜文｜(*),procedure %3%.%5% %6%;,procedure %5% %6%;
-関数,void｜文｜(*),procedure %2% %3%,
-関数,文｜&｜文｜::｜文｜(*),function %3%.%5% %6% : %1%;,function %5% %6% : %1%;
-関数,文｜*｜文｜::｜文｜(*),function %3%.%5% %6% : %1%;,function %5% %6% : %1%;
-関数,文｜文｜::｜文｜(*),function %2%.%4% %5% : %1%;,function %4% %5% : %1%;
-関数,文｜::｜文｜(*),function %1%.%3% %4% : %1%;,function %3% %4% : %1%;
-関数,文｜文｜(*),function %2% %3% : %1%,
+関数,void｜文｜::｜文｜(*),procedure %2%.%4%%5%;｜,procedure %5% %6%;
+関数,void｜文｜(*),procedure %2% %3%｜,
+関数,文｜&｜文｜::｜文｜(*),function %3%.%5% %6% : %1%;｜,function %5% %6% : %1%;
+関数,文｜*｜文｜::｜文｜(*),function %3%.%5% %6% : %1%;｜,function %5% %6% : %1%;
+関数,文｜文｜::｜文｜(*),function %2%.%4% %5% : %1%;｜,function %4% %5% : %1%;
+関数,文｜::｜文｜(*),function %1%.%3% %4% : %1%;｜,function %3% %4% : %1%;
+関数,文｜文｜(*),function %2% %3% : %1%｜,
  , , , 
 関数,文｜(*)｜:｜/(.+?)\((.+?)\)/｜{*},%1%.Create%2%;｜begin｜→%r4 \1=\2%;｜%s5%｜end;,constructor.Create%2%;
 関数,ブロック名｜(*)｜:｜/(.*)\((.*)\)/｜{*},constructor %1% begin %r4%, 
@@ -86,12 +87,12 @@ LABEL,LABEL*｜:,%1%:,label %1%;
  , , , 
 宣言｜(),文｜文｜=｜式,%2% : %1% = %4%, 
 宣言｜(),文｜文,%2% : %1%, 
-宣言代入,文｜文｜=｜＊,{%1%}%2% := %c4;%,var %2% : %1%;
-宣言代入,const｜文｜文｜=｜＊,{%2%}%3% := %4%,var %3% : %2%;
-宣言代入,const｜文｜*｜文｜=｜＊,{%2%}%4% := %5%,var %4% : %2%;
-宣言代入,const｜文｜&｜文｜=｜＊,{%2%}%4% := %5%,var %4% : %2%;
-宣言代入,文｜*｜文｜=｜式,{%1%}%3% := %5%,var %3% : %1%;
-宣言代入,文｜&｜文｜=｜式,{%1%}%3% := %5%,var %3% : %1%;
+宣言代入,文｜文｜=｜＊,{%o1%}%2% := %c4;%,var %2% : %1%;
+宣言代入,const｜文｜文｜=｜＊,{%o2%}%3% := %4%,var %3% : %2%;
+宣言代入,const｜文｜*｜文｜=｜＊,{%o2%}%4% := %5%,var %4% : %2%;
+宣言代入,const｜文｜&｜文｜=｜＊,{%o2%}%4% := %5%,var %4% : %2%;
+宣言代入,文｜*｜文｜=｜式,{%o1%}%3% := %5%,var %3% : %1%;
+宣言代入,文｜&｜文｜=｜式,{%o1%}%3% := %5%,var %3% : %1%;
 宣言,const｜文｜&｜文,%4% : %2%,const %4% : %2%;
 宣言,const｜文｜*｜文,%4% : %2%,const %4% : %2%;
 宣言,const｜文｜文,%3% : %2%,const %3% : %2%;
