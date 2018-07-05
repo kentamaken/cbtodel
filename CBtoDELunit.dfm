@@ -21,7 +21,7 @@ object FormCBtoDEL: TFormCBtoDEL
     Left = 380
     Top = 156
     Width = 4
-    Height = 369
+    Height = 380
     Align = alRight
     ExplicitLeft = 373
     ExplicitHeight = 420
@@ -40,21 +40,23 @@ object FormCBtoDEL: TFormCBtoDEL
     Left = 0
     Top = 156
     Width = 380
-    Height = 369
+    Height = 380
     Align = alClient
     Caption = 'Panel1'
     TabOrder = 0
+    ExplicitHeight = 369
     object CB: TRichEdit
       Left = 1
       Top = 1
       Width = 378
-      Height = 367
+      Height = 378
       Align = alClient
       Font.Charset = SHIFTJIS_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
       Font.Name = #65325#65331' '#12468#12471#12483#12463
       Font.Style = []
+      HideSelection = False
       Lines.Strings = (
         'while (!isend()){'
         #9'type=getsym(pos,str);'
@@ -127,27 +129,30 @@ object FormCBtoDEL: TFormCBtoDEL
       WantTabs = True
       Zoom = 100
       OnKeyDown = CBKeyDown
+      ExplicitHeight = 367
     end
   end
   object PanelDel: TPanel
     Left = 384
     Top = 156
     Width = 372
-    Height = 369
+    Height = 380
     Align = alRight
     Caption = 'PanelDel'
     TabOrder = 1
+    ExplicitHeight = 369
     object DEL: TRichEdit
       Left = 1
       Top = 1
       Width = 370
-      Height = 367
+      Height = 378
       Align = alClient
       Font.Charset = SHIFTJIS_CHARSET
       Font.Color = clWindowText
       Font.Height = -13
       Font.Name = #65325#65331' '#12468#12471#12483#12463
       Font.Style = []
+      HideSelection = False
       Lines.Strings = (
         'DEL')
       ParentFont = False
@@ -157,6 +162,7 @@ object FormCBtoDEL: TFormCBtoDEL
       TabOrder = 0
       WantTabs = True
       Zoom = 100
+      ExplicitHeight = 367
     end
   end
   object PanelTop: TPanel
@@ -205,7 +211,7 @@ object FormCBtoDEL: TFormCBtoDEL
       Padding.Bottom = 2
       TabOrder = 1
       object Label2: TLabel
-        Left = 97
+        Left = 113
         Top = 2
         Width = 112
         Height = 20
@@ -213,9 +219,10 @@ object FormCBtoDEL: TFormCBtoDEL
         AutoSize = False
         Caption = ' '#12521#12452#12531#12502#12525#12483#12463
         Layout = tlCenter
+        ExplicitLeft = 97
       end
       object Label1: TLabel
-        Left = 304
+        Left = 320
         Top = 2
         Width = 99
         Height = 20
@@ -224,10 +231,11 @@ object FormCBtoDEL: TFormCBtoDEL
         Caption = ' '#23459#35328#12502#12525#12483#12463
         Layout = tlCenter
         WordWrap = True
+        ExplicitLeft = 304
         ExplicitHeight = 28
       end
       object Label3: TLabel
-        Left = 0
+        Left = 16
         Top = 2
         Width = 40
         Height = 20
@@ -240,22 +248,24 @@ object FormCBtoDEL: TFormCBtoDEL
         ExplicitHeight = 24
       end
       object EditLineBlock: TEdit
-        Left = 209
+        Left = 225
         Top = 2
         Width = 95
         Height = 20
         Align = alLeft
         TabOrder = 0
         Text = '#define'
+        ExplicitLeft = 209
         ExplicitHeight = 21
       end
       object EditSet: TEdit
-        Left = 40
+        Left = 56
         Top = 2
         Width = 57
         Height = 20
         Align = alLeft
         TabOrder = 1
+        ExplicitLeft = 40
         ExplicitHeight = 21
       end
       object ButtonOk: TButton
@@ -269,17 +279,18 @@ object FormCBtoDEL: TFormCBtoDEL
         TabOrder = 2
       end
       object EditVarBlock: TEdit
-        Left = 403
+        Left = 419
         Top = 2
         Width = 151
         Height = 20
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
+        ExplicitLeft = 403
         ExplicitHeight = 21
       end
       object KEY: TMemo
-        Left = 554
+        Left = 570
         Top = 2
         Width = 103
         Height = 20
@@ -472,29 +483,30 @@ object FormCBtoDEL: TFormCBtoDEL
           'xor_eq')
         TabOrder = 4
         Visible = False
+        ExplicitLeft = 554
+      end
+      object TMP: TComboBox
+        Left = 0
+        Top = 2
+        Width = 16
+        Height = 21
+        Align = alLeft
+        TabOrder = 5
+        Text = 'TMP'
+        Visible = False
+        ExplicitTop = 1
       end
     end
   end
-  object LOG: TRichEdit
+  object LOG: TListBox
     Left = 0
-    Top = 525
+    Top = 536
     Width = 756
-    Height = 68
+    Height = 57
     Align = alBottom
-    Font.Charset = SHIFTJIS_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = #65325#65331' '#12468#12471#12483#12463
-    Font.Style = []
-    Lines.Strings = (
-      'LOG')
-    ParentFont = False
-    PlainText = True
-    PopupMenu = PopupMenu1
-    ScrollBars = ssBoth
+    ItemHeight = 13
     TabOrder = 3
-    Zoom = 100
-    OnKeyDown = CBKeyDown
+    TabWidth = 4
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual
@@ -503,10 +515,12 @@ object FormCBtoDEL: TFormCBtoDEL
     Top = 40
     object MConv: TMenuItem
       Caption = #22793#25563
+      ShortCut = 16416
       OnClick = MConvClick
     end
     object MSave: TMenuItem
       Caption = #20445#23384
+      ShortCut = 16467
       OnClick = MSaveClick
     end
     object MLoad: TMenuItem
@@ -564,8 +578,11 @@ object FormCBtoDEL: TFormCBtoDEL
     Top = 40
     object PConv: TMenuItem
       Caption = #22793#25563
-      ShortCut = 24643
+      ShortCut = 16416
       OnClick = MConvClick
+    end
+    object N8: TMenuItem
+      Caption = '-'
     end
     object PCut: TMenuItem
       Caption = #20999#12426#21462#12426
@@ -579,22 +596,11 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = #36028#12426#20184#12369
       OnClick = MPasteClick
     end
-    object N8: TMenuItem
-      Caption = '-'
-    end
-    object Mend: TMenuItem
-      Caption = '#end#'
-      OnClick = MendClick
-    end
   end
   object PopupMenu2: TPopupMenu
     AutoHotkeys = maManual
     Left = 204
     Top = 40
-    object MGRun: TMenuItem
-      Caption = #22793#25563
-      OnClick = MConvClick
-    end
     object MGRowIns: TMenuItem
       Caption = #34892#25407#20837
       OnClick = MGRowInsClick
