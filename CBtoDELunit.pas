@@ -1281,13 +1281,13 @@ var
 					end else begin;
 						inc(indent);
 						tknback;
-						tkn:=statements(';');
+						tkn:=statements(';}');
 						tkn.typ:=tknBlock;
 						tkn.indent;
 						tkns.add(tkn);
 						dec(indent);
 					end;
-					tknnext;
+					改行保持next(false);
 					if str='else' then begin
 						tkns.add(tkn);
 						改行保持next(false);
@@ -1297,7 +1297,7 @@ var
 						end else begin;
 							inc(indent);
 							tknback;
-							tkn:=statements(';');
+							tkn:=statements(';}');
 							tkn.typ:=tknBlock;
 							tkn.indent;
 							tkns.add(tkn);
@@ -1354,6 +1354,7 @@ var
 			if breakchar.Contains(str) then break;
 			if str='{' then begin
 				複合文;
+				if breakchar.Contains(str) then break;
 				continue;
 			end;
 
