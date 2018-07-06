@@ -31,7 +31,6 @@ type
 		tknLabel=$02000002,tknDelimiter=$02000003,tknEnd=$02000004,tknJump=$02000005,
 		tknQualifier,
 		tknReserved=$04000000,tknFunction=$04000001,tknVariable=$04000002,
-
 		tknArray=$40000000,tknVar=$80000000,tknAll=$FFFFFFFF);
 
 
@@ -48,6 +47,8 @@ type
 		function convblock: Ttoken;
 		procedure indent;
 		procedure clear;
+		procedure trim(d:char);
+
 	end;
 	Ptoken=^Ttoken;
 	TtokenArray=array of Ttoken;
@@ -207,6 +208,7 @@ type
 	LOG: TListBox;
 	TMP: TComboBox;
 	PConv: TMenuItem;
+    Proc1: TMenuItem;
 	procedure MConvClick(Sender: TObject);
 	procedure MSaveClick(Sender: TObject);
 	procedure MLoadClick(Sender: TObject);
@@ -1064,6 +1066,11 @@ var
 		indent:=bindent;
 
 		//dstt:='{##}'+dstt+'';
+		if stype=tknBlock then
+			if MatchStr(str,['if','while','for']) then begin
+				dstt:='TProc(procedure'+dstt+'end)();';
+			end;
+
 
 		result.src:=tkns.source;
 		result.typ:=stype;
@@ -1376,6 +1383,7 @@ var
 					end;
 					if Key='if' then begin
 						if tknnextis('else') then begin
+							tkns.last.trim(';');
 							tknnext;
 							tkns.add(tkn);
 							if tknnextis('{') then begin
@@ -1402,6 +1410,7 @@ var
 			end else if str='do' then begin
 				tkns.add(tkn);
 				tknnext;
+				ブロックタイプ:=str;
 				if str='{' then begin
 					複合文
 				end else begin;
@@ -1415,6 +1424,25 @@ var
 				if str='(' then begin
 					丸括弧;
 					tknnext;
+				end;
+				continue;
+			end else if str='switch' then begin
+				tkns.add(tkn);
+				tknnext;
+				ブロックタイプ:=str;
+				if str='case' then begin
+					tkns.add(tkn);
+					tknnext;
+					if str='{' then begin
+						複合文
+					end else begin;
+						inc(indent);
+						tknback;
+						tkn:=statements(';');
+						tkn.typ:=tknBlock;
+						tkns.add(tkn);
+						dec(indent);
+					end;
 				end;
 				continue;
 
@@ -1485,6 +1513,7 @@ begin
 	end;
 
 	result:=reconstruct;
+
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
 	ブロックタイプ:=sブロックタイプ;
@@ -1730,6 +1759,20 @@ begin
 		str:=StringReplace(TrimRight(str),CRLF,CRLF+tab,[rfReplaceAll])+CRLF
 	else
 		str:=StringReplace(str,CRLF,CRLF+tab,[rfReplaceAll]);
+
+end;
+
+procedure Ttoken.trim(d:char);
+var s,r:string;
+begin
+	s:=str;
+	if MatchesMask(s,'*'+CRLF) then begin   //最後の改行を保持
+		s:=trimright(s);
+		r:=CRLF;
+	end;
+
+	if MatchesMask(s,'*'+d) then    //最後の改行を保持
+		str:=s.TrimRight(d)+r;
 
 end;
 

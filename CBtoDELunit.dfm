@@ -44,7 +44,6 @@ object FormCBtoDEL: TFormCBtoDEL
     Align = alClient
     Caption = 'Panel1'
     TabOrder = 0
-    ExplicitHeight = 369
     object CB: TRichEdit
       Left = 1
       Top = 1
@@ -129,7 +128,6 @@ object FormCBtoDEL: TFormCBtoDEL
       WantTabs = True
       Zoom = 100
       OnKeyDown = CBKeyDown
-      ExplicitHeight = 367
     end
   end
   object PanelDel: TPanel
@@ -140,7 +138,6 @@ object FormCBtoDEL: TFormCBtoDEL
     Align = alRight
     Caption = 'PanelDel'
     TabOrder = 1
-    ExplicitHeight = 369
     object DEL: TRichEdit
       Left = 1
       Top = 1
@@ -162,7 +159,6 @@ object FormCBtoDEL: TFormCBtoDEL
       TabOrder = 0
       WantTabs = True
       Zoom = 100
-      ExplicitHeight = 367
     end
   end
   object PanelTop: TPanel
@@ -255,7 +251,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Align = alLeft
         TabOrder = 0
         Text = '#define'
-        ExplicitLeft = 209
         ExplicitHeight = 21
       end
       object EditSet: TEdit
@@ -265,7 +260,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Height = 20
         Align = alLeft
         TabOrder = 1
-        ExplicitLeft = 40
         ExplicitHeight = 21
       end
       object ButtonOk: TButton
@@ -286,7 +280,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
-        ExplicitLeft = 403
         ExplicitHeight = 21
       end
       object KEY: TMemo
@@ -483,7 +476,6 @@ object FormCBtoDEL: TFormCBtoDEL
           'xor_eq')
         TabOrder = 4
         Visible = False
-        ExplicitLeft = 554
       end
       object TMP: TComboBox
         Left = 0
@@ -494,7 +486,6 @@ object FormCBtoDEL: TFormCBtoDEL
         TabOrder = 5
         Text = 'TMP'
         Visible = False
-        ExplicitTop = 1
       end
     end
   end
@@ -569,6 +560,10 @@ object FormCBtoDEL: TFormCBtoDEL
         Caption = #35542#29702#24335#22793#25563
         Checked = True
         OnClick = MSetClick
+      end
+      object Proc1: TMenuItem
+        Caption = 'TProc'#21270
+        Checked = True
       end
     end
   end
