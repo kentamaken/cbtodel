@@ -18,7 +18,7 @@
 置換,__fastcall,,
 置換,PACKAGE,{PACKAGE},
  , , ,
-if,if｜(*)｜{*}｜else｜{*},if %s2% then begin｜%s3%end else begin｜%s5%end;｜,
+if,if｜(*)｜{*}｜else｜{*},if %s2% then %3%%d;% else %5%,
 if,if｜(*)｜{*}｜else｜*;,if %s2% then begin｜%s3%end else｜%5%,
 if,if｜(*)｜{*},if %s2% then begin｜%s3%end;｜,
 if,if｜(*)｜*;｜else｜{*},if %s2% then｜%s3%else begin｜%s5%end;｜,
@@ -34,17 +34,16 @@ for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 < (.*) ; \1 \+\+/,for %x1% := %x2% to %x
 for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 <= (.*) ; \1 \+\+/,for %x1% := %x2% to %x3%-1 do,
 for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 > (.*) ; \1 \-\-/,for %x1% := %x2% downto %x3% do,
 for,for｜/.*([a-z]+[0-9]*) = (.*) ; \1 >= (.*) ; \1 \-\-/,for %x1% := %x2% downto %x3% do,
-for,for｜(*)｜{*},TProc(procedure(%2;1%)｜%var%begin｜→%2;1%｜→while %2;2% do begin｜%i3%%s3%→→%2;3%;｜→end;｜end;)();｜,
-for,for｜(*)｜*;,TProc(procedure(%2;1%)｜%var%begin｜→ while %2;2% do begin｜%i3%%3%→→%2;3%;｜→end;｜end;)();｜,
-//for,for｜(*)｜{*},begin %2;1%｜while %2;2% do begin｜%s3%→%2;3%;｜end;｜end;｜,
-//for,for｜(*)｜*;,begin %2;1%｜while %2;2% do begin｜%3%→%2;3%;｜end;｜end;｜,
+for,for｜(*)｜{*},%2;1%;｜while %2;2% do begin｜%s3%→%2;3%;｜end;｜,
+for,for｜(*)｜*;,%2;1%;｜while %2;2% do begin｜%3%→%2;3%;｜end;｜,
  , , ,
 do,do｜{*}｜while｜(*),repeat｜%s2%until not ( %s4% ) ,
 do,do｜*;｜while｜(*),repeat｜→%2%｜until not ( %s4% ) ,
 while,while｜(*)｜{*},while %s2% do%3%,
 while,while｜(*)｜*;,while %s2% do｜⇒→%3%,
+ ,switch｜(*)｜{*},case %s2% of｜%s3%end;,
  , , ,
-enum,enum｜文｜{*},%s2% = ( ｜ %o3% ),
+enum,enum｜文｜{*},%s2% = ( ｜ %s3% ),
 union,union｜文｜{*},case %s2%:Integer of ｜ %s3% ｜ end;,
 union,union｜{*},case Integer of｜%s2%end,
 struct,struct｜文｜{*},record %s2%｜%s3%end,
@@ -56,6 +55,7 @@ delete,delete｜文,%2% . free,
 return,return｜＊｜;,exit( %c2% );,
 return,return,exit,
  , , ,
+ ,case｜式｜:,%2%:,
 LABEL,LABEL*｜:,%1%:,label %1%;
 ,/(.*)(\.|->)Pos/｜(*),"pos(%s2%,%x1%)",
 ,/(.*)(\.|->)Contains/｜(*),(%s2% in %x1%),
@@ -89,19 +89,23 @@ LABEL,LABEL*｜:,%1%:,label %1%;
 代入,左｜--,%1% := %1% - 1, 
  , , , 
 宣言｜(),文｜文｜=｜式,%2% : %1% = %4%, 
+宣言｜enum,文｜=｜式,%1% = %3%, 
+宣言｜(),文｜&｜文,var %2% : %1%, 
+宣言｜(),文｜*｜文,var %2% : %1%, 
 宣言｜(),文｜文,%2% : %1%, 
-宣言代入,文｜文｜=｜＊,{%o1%}%2% := %c4;%,var %2% : %1%;
-宣言代入,const｜文｜文｜=｜＊,{%o2%}%3% := %4%,var %3% : %2%;
-宣言代入,const｜文｜*｜文｜=｜＊,{%o2%}%4% := %5%,var %4% : %2%;
-宣言代入,const｜文｜&｜文｜=｜＊,{%o2%}%4% := %5%,var %4% : %2%;
-宣言代入,文｜*｜文｜=｜式,{%o1%}%3% := %5%,var %3% : %1%;
-宣言代入,文｜&｜文｜=｜式,{%o1%}%3% := %5%,var %3% : %1%;
-宣言,const｜文｜&｜文,%4% : %2%,const %4% : %2%;
-宣言,const｜文｜*｜文,%4% : %2%,const %4% : %2%;
-宣言,const｜文｜文,%3% : %2%,const %3% : %2%;
-宣言,文｜*｜文,%3% : %1%, 
-宣言,文｜文,%2% : %1%,var %2% : %1%;
- , , , 
+宣言代入,const｜文｜*｜文｜=｜＊,%o2%%4% := %5%,var %4% : %2%;
+宣言代入,const｜文｜&｜文｜=｜＊,%o2%%4% := %5%,var %4% : %2%;
+宣言代入,const｜文｜文｜=｜＊,%o2%%3% := %4%,var %3% : %2%;
+宣言代入,文｜*｜文｜=｜式,%o1%%3% := %5%,var %3% : %1%;
+宣言代入,文｜&｜文｜=｜式,%o1%%3% := %5%,var %3% : %1%;
+宣言代入,文｜文｜=｜式,%o1%%2% := %4%,var %2% : %1%;
+宣言,const｜文｜&｜文｜;,%4% : %2%;,const %4% : %2%;
+宣言,const｜文｜*｜文｜;,%4% : %2%;,const %4% : %2%;
+宣言,const｜文｜文｜;,%3% : %2%;,const %3% : %2%;
+宣言,文｜&｜文｜;,%3% : %1%;,var %3% : %1%;
+宣言,文｜*｜文｜;,%2% : %1%;,var %2% : %1%;
+宣言,文｜文｜;,%2% : %1%;,var %2% : %1%;
+ , , ,
 演算,式｜<<｜式,%1% shl %3%, 
 演算,式｜>>｜式,%1% shr %3%, 
 演算,式｜<<｜式,%1% -[ %3% ], 

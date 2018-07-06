@@ -561,9 +561,19 @@ object FormCBtoDEL: TFormCBtoDEL
         Checked = True
         OnClick = MSetClick
       end
-      object Proc1: TMenuItem
-        Caption = 'TProc'#21270
+      object MSVar: TMenuItem
+        Caption = #23459#35328#12434#36861#21152
         Checked = True
+        OnClick = MSetClick
+      end
+      object MSVarProc: TMenuItem
+        Caption = #23459#35328#12434'TProc'#21270
+        Checked = True
+        OnClick = MSetClick
+      end
+      object MSOrg: TMenuItem
+        Caption = '%o%('#12477#12540#12473')'#26377#21177
+        OnClick = MSetClick
       end
     end
   end

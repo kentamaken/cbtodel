@@ -91,7 +91,7 @@ type
 		function adduni(s:string):Integer;
 
 		function item(i:Integer):String;
-		function cat(d:string):String;
+		function cat(s,e:string):String;
 		function stringselfcreate:TStringSelf;
 		function load(f:string):boolean;
 		function save(f:string):boolean;
@@ -208,7 +208,9 @@ type
 	LOG: TListBox;
 	TMP: TComboBox;
 	PConv: TMenuItem;
-    Proc1: TMenuItem;
+    MSVarProc: TMenuItem;
+    MSVar: TMenuItem;
+    MSOrg: TMenuItem;
 	procedure MConvClick(Sender: TObject);
 	procedure MSaveClick(Sender: TObject);
 	procedure MLoadClick(Sender: TObject);
@@ -437,6 +439,7 @@ begin
 		CG.FixedCols:=1;
 		CG.FixedRows:=1;
 
+		TGrid(CG).save;
 		TGrid(CG).ColExpand(10);
 
 		logadd('読込:'+csvfile);
@@ -475,25 +478,6 @@ end;
 
 
 
-
-
-function trimrightlen(const s,ts:string;var len:integer):string;
-var
-	i:integer;
-	ei:integer;
-	si:integer;
-begin
-	result:='';
-	for i:=len downto 1 do begin
-		if(Pos(S[i],ts)<>0)then continue;
-		len:=i;
-
-		break;
-	end;
-	if len=0 then exit; //すべて削除文字
-	si:=1;
-	result:=Copy(S,si,len-si+1);
-end;
 
 
 
@@ -714,6 +698,23 @@ var
 		result.src:=src;
 	end;
 
+	function ブロック変数宣言(var t:Ttoken;names:TStringDynArray):Integer;
+	begin
+		if MSVar.Checked then begin
+			if MatchStr(ブロックタイプ,names) then begin
+				if varlist.count>0 then begin
+					if MSVarProc.Checked then begin
+						t.str:='TProc(procedure '+varlist.cat('',CRLF)+'begin'+CRLF+t.str+'end)();'+CRLF;
+					end else begin
+						t.str:=varlist.cat('//',CRLF)+'begin'+CRLF+t.str+'end;'+CRLF;
+					end;
+					t.typ:=tknBlock;
+					t.indent;
+					varlist.clear;
+				end;
+			end;
+		end;
+	end;
 
 
 	function reconstruct:Ttoken;
@@ -721,6 +722,7 @@ var
 		tkn :Ttoken;
 		p :Ptoken;
 		stype :TtokenType;
+		block :boolean;
 		dstt:STRING;
 		strc:STRING;
 		ssrc:STRING;
@@ -766,9 +768,11 @@ var
 		begin
 			inc(i,posstart);
 			if tkns[i].typ=tknBlock then begin
+
 				result:=tryaddstr(gets(i),';')+CRLF;  //existstr(gets(i),'',';'+CRLF);
 
 			end else if tkns[i].typ=tknCBlock then begin
+
 				result:='begin'+CRLF+gets(i)+'end;'+CRLF;
 
 			end else if tkns[i].typ=tknKBlock then
@@ -842,6 +846,7 @@ var
 		end;
 
 
+
 		function replacegrid(var ret:string;var stype :TtokenType):boolean;
 		var c,r:integer;
 		var lab:string;
@@ -859,6 +864,26 @@ var
 		idx:integer;
 		regreplaccestr:TStringDynArray;
 
+			//pからtsを左に抜き取り
+			function trimrightlen(const s,ts:string;var p,m:integer):string;
+			var
+				i:integer;
+				ei:integer;
+				si:integer;
+			begin
+				result:='';
+				ei:=p+1;
+				for i:=p downto 1 do begin
+					if(system.Pos(S[i],ts)<>0)then continue;
+					p:=i;
+					break;
+				end;
+				if p=0 then exit; //すべて削除文字
+				dec(m,ei-p-1);
+				si:=1;
+				result:=Copy(S,si,p-si+1);
+				result:=result+Copy(S,ei);
+			end;
 
 			procedure replace(var rep:string);
 			var rc:integer;
@@ -917,16 +942,21 @@ var
 					if t='E'  then rs:=indenttab+'end;' else
 					if t='T'  then rs:=TAB   else
 					if t='var'  then begin
-						if varlist.count>0 then begin
-							rs:=varlist.cat(CRLF)+rs;
-							varlist.clear;
+						if MSVar.Checked then begin
+							if varlist.count>0 then begin
+								if MSVarProc.Checked then
+									rs:=varlist.cat('',CRLF)
+								else
+									rs:=varlist.cat('//',CRLF);
+								varlist.clear;
+							end;
 						end;
 					end else
 					if t='i' then
 						tkns.items[c].indent else
 //					if t+subd='i'  then rs:=indenttab else
 //					if t+subd='i+'  then rs:=indenttabplus  else
-					if t='d'  then rep:=trimrightlen(rep,'; ',ri)+rep.SubString(ri) else
+					if t='d'  then rep:=trimrightlen(rep,'; '+CRLF,ri,rm) else
 					if t='x' then rs:=regmatchstr.item(c+1) else
 					if t='e' then begin
 						s:=para[c].Trim(['/']);
@@ -940,7 +970,9 @@ var
 						rs:=inccatfor(c,subd) else
 					if t='c' then begin
 						pos:=c; rs:=inccat; end else
-					if t='o' then rs:=getsrc(c) else
+					if t='o' then begin
+						if MSOrg.Checked then rs:='{'+getsrc(c)+'}'
+					end else
 					if t='s' then begin
 						rs:=getstradd(c,subd+subr);
 
@@ -966,10 +998,11 @@ var
 				if lab.indexof('//')=0 then continue;
 				if lab.indexof('置換')=0 then continue;
 				lab:=split(lab,1,'｜');
-				if (ブロックタイプ='') then
+				if (ブロックタイプ='') then begin
 					if (lab<>'') then continue;
-				if (ブロックタイプ<>'') then
+				end else begin
 					if (lab<>'')and(lab<>ブロックタイプ) then continue;
+				end;
 				par:= CG.cells[1,r];
 				para:=SplitString(par,'｜');
 				rep:= CG.cells[2,r];
@@ -1019,6 +1052,7 @@ var
 		if MSLStruct.Checked then logadd(ブロック名+'|'+ブロックタイプ+'|'+indentstr(strc));
 		pos:=0;
 		bindent:=indent;
+		block:=false;
 		try
 		for i := 0 to tkns.hi do begin
 			if i<pos then continue;
@@ -1043,13 +1077,8 @@ var
 			end else
 			if sis('{*}')>0 then begin //
 				stype:=tknCBlock;
-
 				s:=incget(0);
-//				s:=s+';'+CRLF;
-				if varlist.count>0 then begin
-					s:=varlist.cat(CRLF)+s;
-					varlist.clear;
-				end;
+				block:=true;
 			end else begin
 				s:=incget(0);
 			end;
@@ -1066,10 +1095,12 @@ var
 		indent:=bindent;
 
 		//dstt:='{##}'+dstt+'';
-		if stype=tknBlock then
-			if MatchStr(str,['if','while','for']) then begin
-				dstt:='TProc(procedure'+dstt+'end)();';
-			end;
+		tkn.typ:=stype;
+		tkn.str:=dstt;
+		ブロックタイプ:=tkns[0].str;
+		ブロック変数宣言(tkn,['do','while','for']);
+		dstt:=tkn.str;
+
 
 
 		result.src:=tkns.source;
@@ -1185,41 +1216,6 @@ var
 	end;
 
 
-//	procedure tknnext;
-//	var s:Ttoken;
-//	var ret:Ttoken;
-//	begin
-//		gprevp:=p;
-//		ret:=gettoken;
-//		ptkn:=tkns.last;
-//		if ret.typ=tknReserved then begin
-//			while (p[0]<>#0) do begin
-//				s:=gettoken;
-//				if s.str='[' then begin      //配列
-//					ret.add(配列括弧);
-//					continue;
-//				end else if s.convstr='.' then begin  //メンバ参照
-//					s.str:=s.convstr;
-//					ret.add(s);
-//					ret.typ:=tknReserved;
-//					s:=gettoken;
-//					if s.typ=tknReserved then begin
-//						ret.add(s);
-//						continue;
-//					end else begin
-//						p:=prevtknp;
-//						break;
-//					end;
-//				end else begin
-//					p:=prevtknp;
-//					break;
-//				end;
-//			end;
-//		end;
-//		tkn:=ret;
-//		str:=tkn.str;
-//	end;
-
 	procedure 改行保持next(back:boolean);
 	var ss:string;
 	begin
@@ -1307,24 +1303,47 @@ var
 	end;
 
 
+	function 式:Ttoken;
+	begin
+		inc(indent);
+		tkn:=statements(';}');
+		tkn.typ:=tknBlock;
+		tkn.indent;
+		tkns.add(tkn);
+		dec(indent);
+		result:=tkn;
+	end;
 
+	function ケース:Integer;
+	var s:Ttoken;
+	begin
+		result:=0;
+		inc(indent);
+		while p[0]<>#0 do begin
+			s.add(statements(';}'));
+			if tkn.str='}' then break;
+		end;
+		s.typ:=tknCBlock;
+		s.indent;
 
+		ブロック変数宣言(s,['','if']);
+		tkns.add(s);
+		dec(indent);
+	end;
 
 	function 複合文:Integer;
 	var s:Ttoken;
 	begin
 		result:=0;
-
 		inc(indent);
 		while p[0]<>#0 do begin
 			s.add(statements(';}'));
-//			if str=';' then tkns.add(tkn);
 			if tkn.str='}' then break;
 		end;
 		s.typ:=tknCBlock;
-
 		s.indent;
-//		tkn.addstr(CRLF);
+
+		ブロック変数宣言(s,['','if']);
 		tkns.add(s);
 		dec(indent);
 	end;
@@ -1374,12 +1393,7 @@ var
 						tknnext;
 						複合文;
 					end else begin;
-						inc(indent);
-						tkn:=statements(';}');
-						tkn.typ:=tknBlock;
-						tkn.indent;
-						tkns.add(tkn);
-						dec(indent);
+						式;
 					end;
 					if Key='if' then begin
 						if tknnextis('else') then begin
@@ -1390,12 +1404,7 @@ var
 								tknnext;
 								複合文;
 							end else begin;
-								inc(indent);
-								tkn:=statements(';}');
-								tkn.typ:=tknBlock;
-								tkn.indent;
-								tkns.add(tkn);
-								dec(indent);
+								式;
 							end;
 						end else
 							if breakchar.Contains(str) then break;
@@ -1414,12 +1423,8 @@ var
 				if str='{' then begin
 					複合文
 				end else begin;
-					inc(indent);
 					tknback;
-					tkn:=statements(';');
-					tkn.typ:=tknBlock;
-					tkns.add(tkn);
-					dec(indent);
+					式;
 				end;
 				if str='(' then begin
 					丸括弧;
@@ -1427,23 +1432,36 @@ var
 				end;
 				continue;
 			end else if str='switch' then begin
+				ブロックタイプ:=str;
 				tkns.add(tkn);
 				tknnext;
-				ブロックタイプ:=str;
-				if str='case' then begin
-					tkns.add(tkn);
+				丸括弧;
+				tknnext;
+				if str='{' then begin
+				//	tkns.add(tkn);
 					tknnext;
-					if str='{' then begin
-						複合文
-					end else begin;
-						inc(indent);
-						tknback;
-						tkn:=statements(';');
-						tkn.typ:=tknBlock;
-						tkns.add(tkn);
-						dec(indent);
+					while (str='case')or(str='default:') do begin
+						if str='case' then begin
+							tkns.add(tkn);
+							tknnext;
+							tkns.add(tkn);
+							tknnext;
+							tkns.add(tkn);
+							tknnext;
+						end;
+						if str='case' then continue;
+						if str='{' then begin
+							複合文;
+							if str='}' then tknnext;
+						end else begin;
+							tknback;
+							式;
+							if str=';' then tknnext;
+						end;
 					end;
 				end;
+
+
 				continue;
 
 			end else
@@ -1467,11 +1485,7 @@ var
 				tkns.add(クラス初期化);
 				continue;
 			end;
-//			if str=',' then begin
-//				tkn.str:=';';
-//				tkns.add(tkn);
-//				if not breakchar.Contains(str) then continue;
-//			end;// else
+
 			if breakchar.Contains(str) then break;
 			if str='{' then begin
 				複合文;
@@ -1484,7 +1498,7 @@ var
 
 			if not 改行まで then begin
 				if str=':' then begin
-					if ptkn.typ=tknKBlock then continue;    //前カッコはメンバ初期化初期化
+					if ptkn.typ=tknKBlock then continue;    //前カッコはメンバ初期
 					if 宣言ブロック then continue;//label:
 					break;
 				end;
@@ -1562,9 +1576,11 @@ begin
 			dsrc:=dsrc+dstt.str;
 //			dsrc:=dsrc+CRLF;
 		end;
-		if varlist.count>0 then begin
-			dsrc:=indentcr+varlist.cat(CRLF)+dsrc;
-		end;
+		if MSVar.Checked then begin
+			if varlist.count>0 then begin
+				dsrc:=indentcr+varlist.cat('',CRLF)+dsrc;
+			end;
+        end;
 		DEL.Text:=dsrc;
 
 	except
@@ -2365,10 +2381,10 @@ begin
 	result:=count;
 end;
 
-function TStringDynArrayHelper.cat(d:string):String;
-var s:string;
+function TStringDynArrayHelper.cat(s,e:string):String;
+var t:string;
 begin
-	for s in self do result:=result+s+d;
+	for t in self do result:=result+s+t+e;
 end;
 
 procedure TStringDynArrayHelper.clear;
