@@ -185,6 +185,8 @@ object FormCBtoDEL: TFormCBtoDEL
       PopupMenu = PopupMenu2
       TabOrder = 0
       OnSetEditText = CGSetEditText
+      ExplicitLeft = -39
+      ExplicitTop = 3
       ColWidths = (
         64
         64
@@ -207,59 +209,57 @@ object FormCBtoDEL: TFormCBtoDEL
       Padding.Bottom = 2
       TabOrder = 1
       object Label2: TLabel
-        Left = 113
+        Left = 108
         Top = 2
-        Width = 112
+        Width = 105
         Height = 20
         Align = alLeft
-        AutoSize = False
         Caption = ' '#12521#12452#12531#12502#12525#12483#12463
         Layout = tlCenter
-        ExplicitLeft = 97
+        ExplicitLeft = 113
+        ExplicitHeight = 13
       end
       object Label1: TLabel
-        Left = 320
+        Left = 308
         Top = 2
-        Width = 99
+        Width = 91
         Height = 20
         Align = alLeft
-        AutoSize = False
         Caption = ' '#23459#35328#12502#12525#12483#12463
         Layout = tlCenter
         WordWrap = True
-        ExplicitLeft = 304
-        ExplicitHeight = 28
+        ExplicitLeft = 320
+        ExplicitHeight = 13
       end
       object Label3: TLabel
         Left = 16
         Top = 2
-        Width = 40
+        Width = 35
         Height = 20
         Align = alLeft
-        AutoSize = False
         Caption = ' '#35373#23450
         Layout = tlCenter
-        ExplicitLeft = -1
-        ExplicitTop = -1
-        ExplicitHeight = 24
+        ExplicitHeight = 13
       end
       object EditLineBlock: TEdit
-        Left = 225
+        Left = 213
         Top = 2
         Width = 95
         Height = 20
         Align = alLeft
         TabOrder = 0
         Text = '#define'
+        ExplicitLeft = 225
         ExplicitHeight = 21
       end
       object EditSet: TEdit
-        Left = 56
+        Left = 51
         Top = 2
         Width = 57
         Height = 20
         Align = alLeft
         TabOrder = 1
+        ExplicitLeft = 56
         ExplicitHeight = 21
       end
       object ButtonOk: TButton
@@ -273,17 +273,18 @@ object FormCBtoDEL: TFormCBtoDEL
         TabOrder = 2
       end
       object EditVarBlock: TEdit
-        Left = 419
+        Left = 399
         Top = 2
         Width = 151
         Height = 20
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
+        ExplicitLeft = 419
         ExplicitHeight = 21
       end
       object KEY: TMemo
-        Left = 570
+        Left = 550
         Top = 2
         Width = 103
         Height = 20
@@ -476,6 +477,7 @@ object FormCBtoDEL: TFormCBtoDEL
           'xor_eq')
         TabOrder = 4
         Visible = False
+        ExplicitLeft = 570
       end
       object TMP: TComboBox
         Left = 0
@@ -574,6 +576,10 @@ object FormCBtoDEL: TFormCBtoDEL
       object MSOrg: TMenuItem
         Caption = '%o%('#12477#12540#12473')'#26377#21177
         OnClick = MSetClick
+      end
+      object MSFont: TMenuItem
+        Caption = #12501#12457#12531#12488
+        OnClick = MSFontClick
       end
     end
   end
@@ -704,5 +710,14 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = #24335
       OnClick = MenuItemGrid2Click
     end
+  end
+  object FontDialog: TFontDialog
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    Left = 256
+    Top = 40
   end
 end

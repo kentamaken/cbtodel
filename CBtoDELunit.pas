@@ -48,8 +48,9 @@ type
 		procedure indent;
 		procedure clear;
 		procedure trim(d:char);
-
+		function counttoken(s:string):integer;
 	end;
+
 	Ptoken=^Ttoken;
 	TtokenArray=array of Ttoken;
 
@@ -210,7 +211,9 @@ type
 	PConv: TMenuItem;
     MSVarProc: TMenuItem;
     MSVar: TMenuItem;
-    MSOrg: TMenuItem;
+	MSOrg: TMenuItem;
+    MSFont: TMenuItem;
+    FontDialog: TFontDialog;
 	procedure MConvClick(Sender: TObject);
 	procedure MSaveClick(Sender: TObject);
 	procedure MLoadClick(Sender: TObject);
@@ -233,6 +236,7 @@ type
 	procedure MGCutClick(Sender: TObject);
 	procedure MGPasteClick(Sender: TObject);
 	procedure MGRowInsClick(Sender: TObject);
+	procedure MSFontClick(Sender: TObject);
 
 	private
 	procedure logadd(s: string);
@@ -251,37 +255,6 @@ type
 
 var
 	FormCBtoDEL:TFormCBtoDEL;
-	Src        :String;
-	lineblock:TStringDynArray;
-	varblock:TStringDynArray;
-	xs,ys,xw,yw:Integer;
-	line,pline :Integer;
-	b          :TButton;
-	p          :pchar;
-	pp         :pchar;
-	dstt       :Ttoken;
-	dsrc       :STRING;
-	s          :STRING;
-	ss         :STRING;
-	sss        :STRING;
-	tkntyp     :TtokenType;
-	modecell   :boolean;
-	modesheet  :boolean;
-	col,row    :Integer;
-	indent     :Integer;
-	ia         :TIntArray;
-//	StrArray   :TArray<string>;
-//	tknArray   :TArray<Ttoken>;
-	come       :STRING;
-	str        :STRING;
-	conststr: string;
-	宣言ブロック:boolean;
-	ブロック名:string;
-	ブロックタイプ:string;
-	gprevp:PChar;
-	varlist:TStringDynArray;
-	varpos:integer;
-	level:integer;
 
 implementation
 
@@ -305,9 +278,38 @@ var PCol, PRow: Integer;
 	filename:string;
 	txtfile:string;
 	csvfile:string;
+	Src        :String;
+	lineblock:TStringDynArray;
+	varblock:TStringDynArray;
+	xs,ys,xw,yw:Integer;
+	line,pline :Integer;
+	b          :TButton;
+	p          :pchar;
+	pp         :pchar;
+	dstt       :Ttoken;
+	dsrc       :STRING;
+	s          :STRING;
+	ss         :STRING;
+	sss        :STRING;
+	tkntyp     :TtokenType;
+	modecell   :boolean;
+	modesheet  :boolean;
+	col,row    :Integer;
+	ia         :TIntArray;
+//	StrArray   :TArray<string>;
+//	tknArray   :TArray<Ttoken>;
+	str        :STRING;
+	indent     :Integer;
 	regmatchstr:TStringDynArray;
 	tkn :Ttoken;
 	ptkn:Ptoken;
+	宣言ブロック:boolean;
+	ブロック名:string;
+	ブロックタイプ:string;
+	gprevp:PChar;
+	varlist:TStringDynArray;
+	varpos:integer;
+	level:integer;
 
 
 procedure TFormCBtoDEL.FormCreate(Sender: TObject);
@@ -321,7 +323,8 @@ begin
 	MLoadClick(sender);
 	PCol:=CG.Col;
 	PRow:=CG.Row;
-end;
+    ActiveControl:=CB;
+	end;
 
 
 
@@ -332,8 +335,9 @@ begin
 	Ini.WriteInteger('','Height', Height );
 	Ini.WriteInteger('','PanelTop.Height',PanelTop.Height);
 	Ini.WriteInteger('','PanelDel.Width',PanelDel.Width);
+	Ini.WriteInteger('','Font.Size',Font.Size);
 
-	for m in MSet do Ini.WriteBool( '',M.Caption,M.Checked);
+	for m in MSet do Ini.WriteString( '',M.Caption,IfThen(M.Checked,'1'));
 	Ini.Free;
 end;
 
@@ -341,7 +345,7 @@ end;
 
 procedure TFormCBtoDEL.logadd(s:string);
 begin
-    log.items.add(s);
+	log.items.add(s);
 //	LOG.Perform(EM_LINESCROLL, 0, LOG.Lines.Count);
 //	LOG.Perform(EM_SCROLL, SB_LINEUP, 0);
 	LOG.TopIndex:=LOG.Count-1;
@@ -410,11 +414,14 @@ begin
 
 	try
 		for M in MSet do M.Checked:=Ini.ReadBool( '',M.Caption,M.Checked);
-		 Width     := Ini.ReadInteger( '', 'Width', Width );
-		 Height    := Ini.ReadInteger( '', 'Height', Height );
-		 PanelTop.Height    := Ini.ReadInteger( '', 'PanelTop.Height', PanelTop.Height );
-		 PanelDel.Width    := Ini.ReadInteger( '', 'PanelDel.Width', ClientWidth div 2 );
-		 CB.Lines.Clear;
+		Width     := Ini.ReadInteger( '', 'Width', Width );
+		Height    := Ini.ReadInteger( '', 'Height', Height );
+		PanelTop.Height    := Ini.ReadInteger( '', 'PanelTop.Height', PanelTop.Height );
+		PanelDel.Width    := Ini.ReadInteger( '', 'PanelDel.Width', ClientWidth div 2 );
+		Font.Size:=Ini.ReadInteger('','Font.Size',Font.Size);
+		CB.Font:=font;
+		DEL.Font:=font;
+		CB.Lines.Clear;
 		CB.Lines.LoadFromFile(txtfile);
 		logadd('読込:'+txtfile);
 	except
@@ -559,6 +566,7 @@ var
 	s宣言ブロック:boolean;
 	sブロック名:string;
 	sブロックタイプ:string;
+	varlist:TStringDynArray;
 	改行まで:boolean;
 
 	イフ:boolean;
@@ -584,9 +592,6 @@ var
 			prevp:=p;
 			t:=tknget(p,buf,'''');
 			s:=buf;
-			if s='const' then t:=tknQualifier;
-//				if s='&' then t:=tknQualifier else
-//				if s='*' then t:=tknQualifier ;
 		end;
 //		procedure ifadd(tt:TtokenType);
 //		begin
@@ -717,7 +722,7 @@ var
 	end;
 
 
-	function reconstruct:Ttoken;
+	function reconstruct(tkns:Ttokens):Ttoken;
 	var
 		tkn :Ttoken;
 		p :Ptoken;
@@ -814,9 +819,6 @@ var
 			result:=result.trimright([' ',';',CR,LF]);
 		end;
 
-
-
-
 		function inccat:string;   //最後までくっつける
 		begin
 			result:='';
@@ -844,7 +846,6 @@ var
 			if trim(a)='' then exit(0);
 			result:=tkns.structureisstr(posstart,SplitString(a,'｜'));
 		end;
-
 
 
 		function replacegrid(var ret:string;var stype :TtokenType):boolean;
@@ -1045,7 +1046,6 @@ var
 		end;
 	begin
 		dstt:='';
-		come:='';
 		strc:=tkns.structure;
 		ssrc:=tkns.sourcestructure;
 		if MSLSource.Checked then logadd(indentstr(ssrc));
@@ -1306,45 +1306,69 @@ var
 	function 式:Ttoken;
 	begin
 		inc(indent);
-		tkn:=statements(';}');
-		tkn.typ:=tknBlock;
-		tkn.indent;
-		tkns.add(tkn);
+		result:=statements(';}');
+		result.typ:=tknBlock;
+		if result.counttoken(';')>1 then
+			result.typ:=tknCBlock;//複合になった
+		result.indent;
 		dec(indent);
-		result:=tkn;
+	end;
+
+
+	function 複合文:Ttoken;
+	var s:Ttoken;
+	begin
+		result.clear;
+		inc(indent);
+		while p[0]<>#0 do begin
+			result.add(statements(';}'));
+
+
+			if str='}' then break;
+		end;
+		result.typ:=tknCBlock;
+		result.indent;
+
+		ブロック変数宣言(result,['','if']);
+		dec(indent);
 	end;
 
 	function ケース:Integer;
 	var s:Ttoken;
+		ts:Ttokens;
 	begin
 		result:=0;
 		inc(indent);
 		while p[0]<>#0 do begin
-			s.add(statements(';}'));
-			if tkn.str='}' then break;
+			if(str='case')or(str='default') then begin
+				if str='case' then begin
+					ts.add(tkn);
+					tknnext;
+					ts.add(tkn);
+				end else begin
+					ts.add(tkn);
+                end;
+				tknnext;
+				if str=':' then 	ts.add(tkn);
+				tknnext;
+				if str='case' then continue;
+				if str='{' then begin
+					ts.add(複合文);
+					if str='}' then tknnext;
+				end else begin;
+					tknback;
+					ts.add(式);
+					if str=';' then tknnext;
+				end;
+			end else
+				tknnext;
+
+			if str='}' then break;
 		end;
-		s.typ:=tknCBlock;
-		s.indent;
 
-		ブロック変数宣言(s,['','if']);
-		tkns.add(s);
-		dec(indent);
-	end;
-
-	function 複合文:Integer;
-	var s:Ttoken;
-	begin
-		result:=0;
-		inc(indent);
-		while p[0]<>#0 do begin
-			s.add(statements(';}'));
-			if tkn.str='}' then break;
-		end;
-		s.typ:=tknCBlock;
-		s.indent;
-
-		ブロック変数宣言(s,['','if']);
-		tkns.add(s);
+		tkns.add(reconstruct(ts));
+		tkns.last.typ:=tknCBlock;
+		tkns.last.indent;
 		dec(indent);
 	end;
 
@@ -1391,40 +1415,38 @@ var
 					丸括弧;
 					if tknnextis('{') then begin
 						tknnext;
-						複合文;
+						tkns.add(複合文);
 					end else begin;
-						式;
+						tkn:=式;
+						tkns.add(tkn);
 					end;
 					if Key='if' then begin
 						if tknnextis('else') then begin
-							tkns.last.trim(';');
 							tknnext;
+							tkns.last.trim(';');
+							//tknnext;
 							tkns.add(tkn);
 							if tknnextis('{') then begin
 								tknnext;
-								複合文;
+								tkns.add(複合文);
 							end else begin;
-								式;
+								tkns.add(式);
 							end;
-						end else
-							if breakchar.Contains(str) then break;
-
-					end else begin
-						if breakchar.Contains(str) then break;
+						end;
 					end;
+//					if not tknnextis(';') then
+						break;
 				end;
-
-				continue;
 
 			end else if str='do' then begin
 				tkns.add(tkn);
 				tknnext;
 				ブロックタイプ:=str;
 				if str='{' then begin
-					複合文
+					tkns.add(複合文)
 				end else begin;
 					tknback;
-					式;
+					tkns.add(式);
 				end;
 				if str='(' then begin
 					丸括弧;
@@ -1438,27 +1460,28 @@ var
 				丸括弧;
 				tknnext;
 				if str='{' then begin
-				//	tkns.add(tkn);
+					ケース;
+
 					tknnext;
-					while (str='case')or(str='default:') do begin
-						if str='case' then begin
-							tkns.add(tkn);
-							tknnext;
-							tkns.add(tkn);
-							tknnext;
-							tkns.add(tkn);
-							tknnext;
-						end;
-						if str='case' then continue;
-						if str='{' then begin
-							複合文;
-							if str='}' then tknnext;
-						end else begin;
-							tknback;
-							式;
-							if str=';' then tknnext;
-						end;
-					end;
+//					while (str='case')or(str='default:') do begin
+//						if str='case' then begin
+//							tkns.add(tkn);
+//							tknnext;
+//							tkns.add(tkn);
+//							tknnext;
+//							tkns.add(tkn);
+//							tknnext;
+//						end;
+//						if str='case' then continue;
+//						if str='{' then begin
+//							tkns.add(複合文);
+//							if str='}' then tknnext;
+//						end else begin;
+//							tknback;
+//							式;
+//							if str=';' then tknnext;
+//						end;
+//					end;
 				end;
 
 
@@ -1488,7 +1511,7 @@ var
 
 			if breakchar.Contains(str) then break;
 			if str='{' then begin
-				複合文;
+				tkns.add(複合文);
 				if breakchar.Contains(str) then break;
 				continue;
 			end;
@@ -1515,6 +1538,9 @@ begin
 	inc(level);
 	tkns.null.clear;
 	文;
+
+
+
 	if breakchar.Contains(tkn.str) then begin
 		if str=',' then begin
 
@@ -1526,8 +1552,9 @@ begin
 		end;
 	end;
 
-	result:=reconstruct;
+	result:=reconstruct(tkns);
 
+//	varlist:=svarlist;
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
 	ブロックタイプ:=sブロックタイプ;
@@ -1562,14 +1589,10 @@ begin
 	宣言ブロック:=false;
 
 	p:=pchar(src);
-	pp:=StrPos(p, '#end#');
-	if pp<>nil then
-		pp[0]:=#0;
 	indent:=0;
 	try
 		while (p[0]<>#0) do begin
 
-			come:='';
 			dstt:=statements(';');
 
 
@@ -1675,6 +1698,13 @@ begin
 end;
 
 
+
+procedure TFormCBtoDEL.MSFontClick(Sender: TObject);
+begin
+ FontDialog.Font:=font;
+ if FontDialog.Execute(handle) then
+	font:=FontDialog.Font;
+end;
 
 //function:String begin Result:='deathma colosseum'end)
 
@@ -1790,6 +1820,20 @@ begin
 	if MatchesMask(s,'*'+d) then    //最後の改行を保持
 		str:=s.TrimRight(d)+r;
 
+end;
+
+function Ttoken.counttoken(s:string):integer;
+var
+	p:PChar;
+	buf:array [0..1024] of CHAR;
+begin
+	result:=0;
+	p:=PChar(src);
+	while p[0]<>#0 do begin
+		tknget(p,buf,'''');
+		if s=buf then inc(result);
+	end;
+	if (result=0)and(''<>buf) then result:=1;
 end;
 
 function Ttokens.ins(t: Integer; s: Ttoken): Integer;
@@ -2017,7 +2061,7 @@ var
 	prechr :CHAR;
 	typ:TtokenType;
 label gettknerror;
-	//Identifiers識別子 Tokens複合文 Keywords予約語
+	//Identifiers識別子 Tokenstkns.add(複合文) Keywords予約語
 	//Punctuators区切り文字! % ^ & * ( ) – + = { } | ~ [ ] \ ; ' : " < > ? , . / #
 
 
