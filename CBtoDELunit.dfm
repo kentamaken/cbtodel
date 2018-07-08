@@ -216,7 +216,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Align = alLeft
         Caption = ' '#12521#12452#12531#12502#12525#12483#12463
         Layout = tlCenter
-        ExplicitLeft = 113
         ExplicitHeight = 13
       end
       object Label1: TLabel
@@ -228,7 +227,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Caption = ' '#23459#35328#12502#12525#12483#12463
         Layout = tlCenter
         WordWrap = True
-        ExplicitLeft = 320
         ExplicitHeight = 13
       end
       object Label3: TLabel
@@ -483,7 +481,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 0
         Top = 2
         Width = 16
-        Height = 21
+        Height = 20
         Align = alLeft
         TabOrder = 5
         Text = 'TMP'

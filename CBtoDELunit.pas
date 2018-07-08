@@ -566,7 +566,7 @@ var
 	s宣言ブロック:boolean;
 	sブロック名:string;
 	sブロックタイプ:string;
-	varlist:TStringDynArray;
+	svarlist:TStringDynArray;
 	改行まで:boolean;
 
 	イフ:boolean;
@@ -1347,7 +1347,7 @@ var
 					ts.add(tkn);
 				end else begin
 					ts.add(tkn);
-                end;
+				end;
 				tknnext;
 				if str=':' then 	ts.add(tkn);
 				tknnext;
@@ -1415,11 +1415,11 @@ var
 					丸括弧;
 					if tknnextis('{') then begin
 						tknnext;
-						tkns.add(複合文);
+						tkn:=複合文;
 					end else begin;
 						tkn:=式;
-						tkns.add(tkn);
 					end;
+					tkns.add(tkn);
 					if Key='if' then begin
 						if tknnextis('else') then begin
 							tknnext;
@@ -1461,32 +1461,9 @@ var
 				tknnext;
 				if str='{' then begin
 					ケース;
-
 					tknnext;
-//					while (str='case')or(str='default:') do begin
-//						if str='case' then begin
-//							tkns.add(tkn);
-//							tknnext;
-//							tkns.add(tkn);
-//							tknnext;
-//							tkns.add(tkn);
-//							tknnext;
-//						end;
-//						if str='case' then continue;
-//						if str='{' then begin
-//							tkns.add(複合文);
-//							if str='}' then tknnext;
-//						end else begin;
-//							tknback;
-//							式;
-//							if str=';' then tknnext;
-//						end;
-//					end;
 				end;
-
-
 				continue;
-
 			end else
 			if 式変換(true) then begin
 //				if breakchar.Contains(str) then break;
@@ -1535,19 +1512,20 @@ begin
 	s宣言ブロック:=宣言ブロック;
 	sブロック名:=ブロック名;
 	sブロックタイプ:=ブロックタイプ;
+	svarlist:=varlist;
 	inc(level);
 	tkns.null.clear;
 	文;
 
 
-
-	if breakchar.Contains(tkn.str) then begin
+	ptkn:=tkns.last;
+	if breakchar.Contains(str) then begin
 		if str=',' then begin
 
 			tkns.add(tkn);
 
-		end else if tkn.str=';' then begin
-			tkns.add(tkn);
+		end else if str=';' then begin
+			if ptkn.typ<>tknBlock then tkns.add(tkn);
 			改行保持next(true);
 		end;
 	end;
@@ -1555,6 +1533,7 @@ begin
 	result:=reconstruct(tkns);
 
 //	varlist:=svarlist;
+	varlist:=svarlist;
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
 	ブロックタイプ:=sブロックタイプ;
