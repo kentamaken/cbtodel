@@ -1411,7 +1411,7 @@ var
 				end;
 			end;
 
-			if MatchStr(str,['if','while','for']) then begin
+			if MatchStr(str,['if']) then begin
 				Key:=str;
 				tkns.add(tkn);
 				ブロックタイプ:=str;
@@ -1420,29 +1420,38 @@ var
 					丸括弧;
 					if tknnextis('{') then begin
 						tknnext;
-						tkn:=複合文;
+						tkns.add(複合文);
 					end else begin;
-						tkn:=式;
+						tkns.add(式);
 					end;
-					tkns.add(tkn);
-					if Key='if' then begin
-						if tknnextis('else') then begin
+					if tknnextis('else') then begin
+	//					if str='else' then begin
+						tkns.last.trim(';');
+						tknnext;
+						tkns.add(tkn);
+						if tknnextis('{') then begin
 							tknnext;
-							tkns.last.trim(';');
-							//tknnext;
-							tkns.add(tkn);
-							if tknnextis('{') then begin
-								tknnext;
-								tkns.add(複合文);
-							end else begin;
-								tkns.add(式);
-							end;
+							tkns.add(複合文);
+						end else begin
+							tkns.add(式);
 						end;
-					end;
-//					if not tknnextis(';') then
-						break;
+					end else
+						continue;
 				end;
-
+			end else if MatchStr(str,['while','for']) then begin
+				Key:=str;
+				tkns.add(tkn);
+				ブロックタイプ:=str;
+				if tknnextis('(') then begin
+					tknnext;
+					丸括弧;
+					if tknnextis('{') then begin
+						tknnext;
+						tkns.add(複合文);
+					end else begin;
+						tkns.add(式);
+					end;
+				end;
 			end else if str='do' then begin
 				tkns.add(tkn);
 				tknnext;
@@ -1575,7 +1584,7 @@ begin
 	try
 		while (p[0]<>#0) do begin
 
-			dstt:=statements(';');
+			dstt:=statements(';}');
 
 
 			dsrc:=dsrc+dstt.str;

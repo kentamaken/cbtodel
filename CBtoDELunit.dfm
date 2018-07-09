@@ -475,7 +475,6 @@ object FormCBtoDEL: TFormCBtoDEL
           'xor_eq')
         TabOrder = 4
         Visible = False
-        ExplicitLeft = 570
       end
       object TMP: TComboBox
         Left = 0
