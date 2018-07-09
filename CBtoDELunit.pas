@@ -1320,6 +1320,9 @@ var
 	begin
 		result.clear;
 		inc(indent);
+		svarlist:=varlist;
+		varlist.clear;
+
 		while p[0]<>#0 do begin
 			result.add(statements(';}'));
 
@@ -1330,6 +1333,8 @@ var
 		result.indent;
 
 		ブロック変数宣言(result,['','if']);
+
+		varlist:=svarlist;
 		dec(indent);
 	end;
 
@@ -1512,7 +1517,6 @@ begin
 	s宣言ブロック:=宣言ブロック;
 	sブロック名:=ブロック名;
 	sブロックタイプ:=ブロックタイプ;
-	svarlist:=varlist;
 	inc(level);
 	tkns.null.clear;
 	文;
@@ -1533,7 +1537,6 @@ begin
 	result:=reconstruct(tkns);
 
 //	varlist:=svarlist;
-	varlist:=svarlist;
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
 	ブロックタイプ:=sブロックタイプ;
