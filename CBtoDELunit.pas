@@ -214,6 +214,7 @@ type
 	MSOrg: TMenuItem;
     MSFont: TMenuItem;
     FontDialog: TFontDialog;
+    MSHit: TMenuItem;
 	procedure MConvClick(Sender: TObject);
 	procedure MSaveClick(Sender: TObject);
 	procedure MLoadClick(Sender: TObject);
@@ -845,6 +846,10 @@ var
 		begin
 			if trim(a)='' then exit(0);
 			result:=tkns.structureisstr(posstart,SplitString(a,'｜'));
+			if MSHit.Checked then
+				if result>0 then
+					LOG.Items[LOG.Count-1]:=LOG.Items[LOG.Count-1]+'['+a+']';
+
 		end;
 
 
@@ -1048,8 +1053,10 @@ var
 		dstt:='';
 		strc:=tkns.structure;
 		ssrc:=tkns.sourcestructure;
+
 		if MSLSource.Checked then logadd(indentstr(ssrc));
-		if MSLStruct.Checked then logadd(ブロック名+'|'+ブロックタイプ+'|'+indentstr(strc));
+		if MSLStruct.Checked then logadd('名称:'+ブロック名+' タイプ:'+ブロックタイプ+'|'+indentstr(strc));
+		if MSHit.Checked then logadd('');
 		pos:=0;
 		bindent:=indent;
 		block:=false;
@@ -1502,6 +1509,8 @@ var
 
 			if breakchar.Contains(str) then break;
 			if str='{' then begin
+				ブロックタイプ:='{}';
+				if ptkn.typ=tknKBlock then ブロックタイプ:='function';
 				tkns.add(複合文);
 				if breakchar.Contains(str) then break;
 				continue;
@@ -1529,7 +1538,7 @@ begin
 	inc(level);
 	tkns.null.clear;
 	文;
-
+	LOG.items.BeginUpdate;
 
 	ptkn:=tkns.last;
 	if breakchar.Contains(str) then begin
@@ -1545,7 +1554,8 @@ begin
 
 	result:=reconstruct(tkns);
 
-//	varlist:=svarlist;
+	LOG.items.EndUpdate;
+
 	宣言ブロック:=s宣言ブロック;
 	ブロック名:=sブロック名;
 	ブロックタイプ:=sブロックタイプ;

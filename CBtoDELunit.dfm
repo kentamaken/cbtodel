@@ -185,8 +185,6 @@ object FormCBtoDEL: TFormCBtoDEL
       PopupMenu = PopupMenu2
       TabOrder = 0
       OnSetEditText = CGSetEditText
-      ExplicitLeft = -39
-      ExplicitTop = 3
       ColWidths = (
         64
         64
@@ -247,7 +245,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Align = alLeft
         TabOrder = 0
         Text = '#define'
-        ExplicitLeft = 225
         ExplicitHeight = 21
       end
       object EditSet: TEdit
@@ -257,7 +254,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Height = 20
         Align = alLeft
         TabOrder = 1
-        ExplicitLeft = 56
         ExplicitHeight = 21
       end
       object ButtonOk: TButton
@@ -278,7 +274,6 @@ object FormCBtoDEL: TFormCBtoDEL
         Align = alLeft
         TabOrder = 3
         Text = 'struct class enum union'
-        ExplicitLeft = 419
         ExplicitHeight = 21
       end
       object KEY: TMemo
@@ -480,7 +475,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 0
         Top = 2
         Width = 16
-        Height = 20
+        Height = 21
         Align = alLeft
         TabOrder = 5
         Text = 'TMP'
@@ -525,13 +520,17 @@ object FormCBtoDEL: TFormCBtoDEL
       Caption = #12467#12500#12540
       OnClick = MCopyClick
     end
+    object MFolder: TMenuItem
+      Caption = #12501#12457#12523#12480
+      OnClick = MFolderClick
+    end
     object MPaste: TMenuItem
       Caption = #12506#12540#12473#12488
       OnClick = MPasteClick
     end
-    object MFolder: TMenuItem
-      Caption = #12501#12457#12523#12480
-      OnClick = MFolderClick
+    object MSFont: TMenuItem
+      Caption = #12501#12457#12531#12488
+      OnClick = MSFontClick
     end
     object MSet: TMenuItem
       Caption = #35373#23450
@@ -555,6 +554,10 @@ object FormCBtoDEL: TFormCBtoDEL
         Checked = True
         OnClick = MSetClick
       end
+      object MSHit: TMenuItem
+        Caption = #12525#12464#12395#19968#33268#20986#21147
+        Checked = True
+      end
       object MSExp: TMenuItem
         Caption = #35542#29702#24335#22793#25563
         Checked = True
@@ -573,10 +576,6 @@ object FormCBtoDEL: TFormCBtoDEL
       object MSOrg: TMenuItem
         Caption = '%o%('#12477#12540#12473')'#26377#21177
         OnClick = MSetClick
-      end
-      object MSFont: TMenuItem
-        Caption = #12501#12457#12531#12488
-        OnClick = MSFontClick
       end
     end
   end
