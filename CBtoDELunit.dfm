@@ -475,7 +475,7 @@ object FormCBtoDEL: TFormCBtoDEL
         Left = 0
         Top = 2
         Width = 16
-        Height = 21
+        Height = 20
         Align = alLeft
         TabOrder = 5
         Text = 'TMP'

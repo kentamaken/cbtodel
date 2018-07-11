@@ -1053,13 +1053,15 @@ var
 					pos:=posstart+inccnt;
 
 					if 宣言中 then begin
+						ret:=vrv;
+
 					end else begin
 						if vrv.IndexOf('var')=0 then begin
 							varlist.adduni(vrv);
 						end;
+						ret:=rep;
 					end;
 
-					ret:=rep;
 					result:=true;
 					break;
 				end;
