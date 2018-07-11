@@ -304,9 +304,9 @@ var PCol, PRow: Integer;
 	regmatchstr:TStringDynArray;
 	tkn :Ttoken;
 	ptkn:Ptoken;
-	宣言ブロック:boolean;
-	ブロック名:string;
-	ブロックタイプ:string;
+	宣言中:boolean;
+	宣言名:string;
+	blocktype:string;
 	gprevp:PChar;
 	varlist:TStringDynArray;
 	varpos:integer;
@@ -331,6 +331,7 @@ begin
 
 procedure TFormCBtoDEL.FormDestroy(Sender: TObject);
 var M:TMenuItem;
+	s:string;
 begin
 	Ini.WriteInteger('','Width', Width );
 	Ini.WriteInteger('','Height', Height );
@@ -338,7 +339,7 @@ begin
 	Ini.WriteInteger('','PanelDel.Width',PanelDel.Width);
 	Ini.WriteInteger('','Font.Size',Font.Size);
 
-	for m in MSet do Ini.WriteString( '',M.Caption,IfThen(M.Checked,'1'));
+	for m in MSet do Ini.WriteString( '',M.Caption,IfThen(M.Checked,'1','0'));
 	Ini.Free;
 end;
 
@@ -414,7 +415,8 @@ begin
 	caption:=csvfile;
 
 	try
-		for M in MSet do M.Checked:=Ini.ReadBool( '',M.Caption,M.Checked);
+		for M in MSet do
+			M.Checked:=Ini.ReadBool( '',M.Caption,M.Checked);
 		Width     := Ini.ReadInteger( '', 'Width', Width );
 		Height    := Ini.ReadInteger( '', 'Height', Height );
 		PanelTop.Height    := Ini.ReadInteger( '', 'PanelTop.Height', PanelTop.Height );
@@ -564,9 +566,9 @@ function TFormCBtoDEL.statements(breakchar:string):Ttoken;
 var
 	tkns:Ttokens;
 	stkn:Ttoken;
-	s宣言ブロック:boolean;
-	sブロック名:string;
-	sブロックタイプ:string;
+	s宣言中:boolean;
+	s宣言名:string;
+	sblocktype:string;
 	svarlist:TStringDynArray;
 	改行まで:boolean;
 
@@ -704,21 +706,43 @@ var
 		result.src:=src;
 	end;
 
-	function ブロック変数宣言(var t:Ttoken;names:TStringDynArray):Integer;
+
+	procedure ブロックタイプ(s:string);
+	begin
+		sblocktype:=blocktype;
+		blocktype:=s;
+	end;
+
+	procedure ブロックタイプ戻す;
+	begin
+		sblocktype:=blocktype;
+	end;
+
+	function 変数宣言(var t:Ttoken;names:TStringDynArray):Integer;
+	var tt:ttoken;
 	begin
 		if MSVar.Checked then begin
-			if MatchStr(ブロックタイプ,names) then begin
+			if MatchStr(blocktype,names) then begin
 				if varlist.count>0 then begin
+					tt:=t;
+					tt.indent;
 					if MSVarProc.Checked then begin
-						t.str:='TProc(procedure '+varlist.cat('',CRLF)+'begin'+CRLF+t.str+'end)();'+CRLF;
+						t.str:='TProc(procedure '+varlist.cat('',CRLF)+'begin'+CRLF+tt.str+'end)();'+CRLF;
 					end else begin
 						t.str:=varlist.cat('//',CRLF)+'begin'+CRLF+t.str+'end;'+CRLF;
 					end;
 					t.typ:=tknBlock;
-					t.indent;
-					varlist.clear;
+					varlist:=svarlist;
+
+//					varlist.clear;
 				end;
 			end;
+//			 else if blocktype='function' then begin
+//				if varlist.count>0 then begin
+//					t.str:=varlist.cat('',CRLF)+t.str+CRLF;
+//					varlist.clear;
+//				end;
+//			end;
 		end;
 	end;
 
@@ -1004,10 +1028,10 @@ var
 				if lab.indexof('//')=0 then continue;
 				if lab.indexof('置換')=0 then continue;
 				lab:=split(lab,1,'｜');
-				if (ブロックタイプ='') then begin
+				if (blocktype='') then begin
 					if (lab<>'') then continue;
 				end else begin
-					if (lab<>'')and(lab<>ブロックタイプ) then continue;
+					if (lab<>'')and(lab<>blocktype) then continue;
 				end;
 				par:= CG.cells[1,r];
 				para:=SplitString(par,'｜');
@@ -1028,7 +1052,7 @@ var
 //					if pos<>tkns.count then inc(pos,inccnt);
 					pos:=posstart+inccnt;
 
-					if 宣言ブロック then begin
+					if 宣言中 then begin
 					end else begin
 						if vrv.IndexOf('var')=0 then begin
 							varlist.adduni(vrv);
@@ -1055,7 +1079,7 @@ var
 		ssrc:=tkns.sourcestructure;
 
 		if MSLSource.Checked then logadd(indentstr(ssrc));
-		if MSLStruct.Checked then logadd('名称:'+ブロック名+' タイプ:'+ブロックタイプ+'|'+indentstr(strc));
+		if MSLStruct.Checked then logadd('名称:'+宣言名+' タイプ:'+blocktype+'|'+indentstr(strc));
 		if MSHit.Checked then logadd('');
 		pos:=0;
 		bindent:=indent;
@@ -1104,8 +1128,8 @@ var
 		//dstt:='{##}'+dstt+'';
 		tkn.typ:=stype;
 		tkn.str:=dstt;
-		ブロックタイプ:=tkns[0].str;
-		ブロック変数宣言(tkn,['do','while','for']);
+//		blocktype:=tkns[0].str;
+		変数宣言(tkn,['do','while','for']);
 		dstt:=tkn.str;
 
 
@@ -1149,10 +1173,13 @@ var
 	end;
 
 
-	function 丸括弧:Ttoken;
+	function 丸括弧(m:boolean):Ttoken;
 	var s:Ttoken;
 	begin
 		result:=s;
+		s宣言中:=宣言中;
+		宣言中:=m;        //関数の中は宣言中
+		ブロックタイプ('()');
 		while p[0]<>#0 do begin
 			s:=statements(',)');
 			result.add(s);
@@ -1160,6 +1187,8 @@ var
 		end;
 		result.typ:=tknKBlock;
 		if str=';' then result.addstr('',' ');
+		ブロックタイプ戻す;
+		宣言中:=s宣言中;
 		tkns.add(result);
 	end;
 
@@ -1266,13 +1295,13 @@ var
 					tkns.add(tkn);
 					tknnext;
 					if tkn.str='(' then begin
-						丸括弧;
+						丸括弧(true);
 						tknnext;
 					end else begin
 						tkns.add(tkn);
 						tknnext;
 						if tkn.str='(' then begin
-							丸括弧;
+							丸括弧(true);
 							tknnext;
 
 						end;
@@ -1300,7 +1329,7 @@ var
 		cpos1:=tkns.hi;
 		tknnext;
 		if tkn.str='(' then begin//関数
-			丸括弧;
+			丸括弧(true);
 			tknnext;
 		end;
 		if breakchar.Contains(str) then exit(true);
@@ -1332,16 +1361,13 @@ var
 
 		while p[0]<>#0 do begin
 			result.add(statements(';}'));
-
-
 			if str='}' then break;
 		end;
 		result.typ:=tknCBlock;
 		result.indent;
 
-		ブロック変数宣言(result,['','if']);
+		変数宣言(result,['','if']);
 
-		varlist:=svarlist;
 		dec(indent);
 	end;
 
@@ -1388,6 +1414,7 @@ var
 	var
 		s:string;
 		key:string;
+		s宣言中:boolean;
 	begin
 		改行まで:=false;
 		次へ:=false;
@@ -1407,12 +1434,12 @@ var
 			if MatchStr(str,lineblock) then begin
 				改行まで:=true;
 			end else if MatchStr(str,varblock) then begin
-				宣言ブロック:=true;
-				ブロックタイプ:=str;
+				宣言中:=true;
+				blocktype:=str;
 				tkns.add(tkn);
 				tknnext;
 				if str<>'{' then begin
-					ブロック名:=str;
+					宣言名:=str;
 					tkns.add(tkn);
 					continue;
 				end;
@@ -1421,10 +1448,10 @@ var
 			if MatchStr(str,['if']) then begin
 				Key:=str;
 				tkns.add(tkn);
-				ブロックタイプ:=str;
+				ブロックタイプ(str);
 				if tknnextis('(') then begin
 					tknnext;
-					丸括弧;
+					丸括弧(false);
 					if tknnextis('{') then begin
 						tknnext;
 						tkns.add(複合文);
@@ -1447,10 +1474,10 @@ var
 			end else if MatchStr(str,['while','for']) then begin
 				Key:=str;
 				tkns.add(tkn);
-				ブロックタイプ:=str;
+				ブロックタイプ(str);
 				if tknnextis('(') then begin
 					tknnext;
-					丸括弧;
+					丸括弧(false);
 					if tknnextis('{') then begin
 						tknnext;
 						tkns.add(複合文);
@@ -1462,7 +1489,7 @@ var
 			end else if str='do' then begin
 				tkns.add(tkn);
 				tknnext;
-				ブロックタイプ:=str;
+				ブロックタイプ(str);
 				if str='{' then begin
 					tkns.add(複合文)
 				end else begin;
@@ -1470,15 +1497,15 @@ var
 					tkns.add(式);
 				end;
 				if str='(' then begin
-					丸括弧;
+					丸括弧(false);
 					tknnext;
 				end;
 				continue;
 			end else if str='switch' then begin
-				ブロックタイプ:=str;
+				ブロックタイプ(str);
 				tkns.add(tkn);
 				tknnext;
-				丸括弧;
+				丸括弧(false);
 				tknnext;
 				if str='{' then begin
 					ケース;
@@ -1497,8 +1524,8 @@ var
 				ptkn.cmt:=ptkn.cmt+CRLF;
 				continue;
 			end else if str='(' then begin
-				ブロックタイプ:='()';
-				丸括弧;
+
+				丸括弧(true);
 				continue;
 
 			end else if str=':' then begin
@@ -1509,8 +1536,13 @@ var
 
 			if breakchar.Contains(str) then break;
 			if str='{' then begin
-				ブロックタイプ:='{}';
-				if ptkn.typ=tknKBlock then ブロックタイプ:='function';
+				if ptkn.typ=tknKBlock then begin
+					ブロックタイプ('function');
+
+				end else begin
+					ブロックタイプ('{}');
+
+				end;
 				tkns.add(複合文);
 				if breakchar.Contains(str) then break;
 				continue;
@@ -1522,7 +1554,7 @@ var
 			if not 改行まで then begin
 				if str=':' then begin
 					if ptkn.typ=tknKBlock then continue;    //前カッコはメンバ初期
-					if 宣言ブロック then continue;//label:
+					if 宣言中 then continue;//label:
 					break;
 				end;
 			end;
@@ -1531,10 +1563,10 @@ var
 		end;
 	end;
 
+
 begin
-	s宣言ブロック:=宣言ブロック;
-	sブロック名:=ブロック名;
-	sブロックタイプ:=ブロックタイプ;
+	s宣言中:=宣言中;
+	s宣言名:=宣言名;
 	inc(level);
 	tkns.null.clear;
 	文;
@@ -1556,9 +1588,8 @@ begin
 
 	LOG.items.EndUpdate;
 
-	宣言ブロック:=s宣言ブロック;
-	ブロック名:=sブロック名;
-	ブロックタイプ:=sブロックタイプ;
+	宣言中:=s宣言中;
+	宣言名:=s宣言名;
 	dec(level);
 end;
 
@@ -1585,9 +1616,9 @@ begin
 	dsrc:='';
 	varlist.clear;
 	varpos:=0;
-	ブロックタイプ:='';
-	ブロック名:='';
-	宣言ブロック:=false;
+	blocktype:='';
+	宣言名:='';
+	宣言中:=false;
 
 	p:=pchar(src);
 	indent:=0;
@@ -1988,8 +2019,8 @@ var
 				if regmatch(tkn.src,arg[si].trim(['/']),regmatchstr) then exit(true);
 				exit(false);
 			end;
-			if arg[si]='ブロック名' then
-				arg[si]:=ブロック名;
+			if arg[si]='宣言名' then
+				arg[si]:=宣言名;
 
 			if arg[si]='左' then begin
 				if tkn.typestr<>'文' then
@@ -2717,7 +2748,7 @@ begin
 		if ColWidths[j]>gridWidth then ColWidths[j]:=trunc(gridWidth/2);
 
 	DefaultRowHeight:=Canvas.TextHeight('あ')+2;
-	result          :=w3+4;
+	result:=w3+4;
 end;
 
 function TGrid.RowDelete(y,cnt:integer):integer;
