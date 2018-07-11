@@ -1432,7 +1432,6 @@ var
 						tkns.add(式);
 					end;
 					if tknnextis('else') then begin
-	//					if str='else' then begin
 						tkns.last.trim(';');
 						tknnext;
 						tkns.add(tkn);
@@ -1459,6 +1458,7 @@ var
 						tkns.add(式);
 					end;
 				end;
+				continue;
 			end else if str='do' then begin
 				tkns.add(tkn);
 				tknnext;
