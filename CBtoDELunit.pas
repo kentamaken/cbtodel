@@ -1487,7 +1487,6 @@ var
 						tkns.add(式);
 					end;
 				end;
-				continue;
 			end else if str='do' then begin
 				tkns.add(tkn);
 				tknnext;
@@ -1502,7 +1501,6 @@ var
 					丸括弧(false);
 					tknnext;
 				end;
-				continue;
 			end else if str='switch' then begin
 				ブロックタイプ(str);
 				tkns.add(tkn);
@@ -1513,7 +1511,6 @@ var
 					ケース;
 					tknnext;
 				end;
-				continue;
 			end else
 			if 式変換(true) then begin
 //				if breakchar.Contains(str) then break;
@@ -1546,7 +1543,7 @@ var
 
 				end;
 				tkns.add(複合文);
-				if breakchar.Contains(str) then break;
+				//if breakchar.Contains(str) then break;
 				continue;
 			end;
 
@@ -1587,12 +1584,13 @@ begin
 	end;
 
 	result:=reconstruct(tkns);
+	変数宣言(result,['']);
 
-	LOG.items.EndUpdate;
 
 	宣言中:=s宣言中;
 	宣言名:=s宣言名;
 	dec(level);
+	LOG.items.EndUpdate;
 end;
 
 
@@ -1625,19 +1623,22 @@ begin
 	p:=pchar(src);
 	indent:=0;
 	try
-		while (p[0]<>#0) do begin
+
+
+//		while (p[0]<>#0) do begin
 
 			dstt:=statements(';}');
 
 
 			dsrc:=dsrc+dstt.str;
 //			dsrc:=dsrc+CRLF;
-		end;
-		if MSVar.Checked then begin
-			if varlist.count>0 then begin
-				dsrc:=indentcr+varlist.cat('',CRLF)+dsrc;
-			end;
-        end;
+//		end;
+
+//		if MSVar.Checked then begin
+//			if varlist.count>0 then begin
+//				dsrc:=indentcr+varlist.cat('',CRLF)+dsrc;
+//			end;
+//		end;
 		DEL.Text:=dsrc;
 
 	except
@@ -1834,6 +1835,7 @@ end;
 
 procedure Ttoken.indent;
 begin
+	if str='' then exit;
 	str:=tab+str;
 	if MatchesMask(str,'*'+CRLF) then    //最後の改行を保持
 		str:=StringReplace(TrimRight(str),CRLF,CRLF+tab,[rfReplaceAll])+CRLF
