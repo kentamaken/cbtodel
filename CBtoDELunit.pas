@@ -718,9 +718,10 @@ var
 		sblocktype:=blocktype;
 	end;
 
-	function 変数宣言(var t:Ttoken;names:TStringDynArray):Integer;
+	function 変数宣言(var t:Ttoken;names:TStringDynArray):boolean;
 	var tt:ttoken;
 	begin
+		result:=false;
 		if MSVar.Checked then begin
 			if MatchStr(blocktype,names) then begin
 				if varlist.count>0 then begin
@@ -732,9 +733,10 @@ var
 						t.str:=varlist.cat('//',CRLF)+'begin'+CRLF+t.str+'end;'+CRLF;
 					end;
 					t.typ:=tknBlock;
-					varlist:=svarlist;
 
+					varlist:=svarlist;
 //					varlist.clear;
+					exit(true);
 				end;
 			end;
 //			 else if blocktype='function' then begin
@@ -1359,16 +1361,21 @@ var
 		result.clear;
 		inc(indent);
 		svarlist:=varlist;
-		varlist.clear;
+//		varlist.clear;
 
 		while p[0]<>#0 do begin
 			result.add(statements(';}'));
+			//自分の｝をどう判断するか
+
 			if str='}' then break;
 		end;
 		result.typ:=tknCBlock;
 		result.indent;
 
-		変数宣言(result,['','if']);
+		変数宣言(result,['','if','while']);
+//		if 変数宣言(result,['','if']) then
+//			varlist:=svarlist;
+
 
 		dec(indent);
 	end;
@@ -1476,13 +1483,14 @@ var
 			end else if MatchStr(str,['while','for']) then begin
 				Key:=str;
 				tkns.add(tkn);
-				ブロックタイプ(str);
 				if tknnextis('(') then begin
 					tknnext;
 					丸括弧(false);
 					if tknnextis('{') then begin
+						ブロックタイプ(key);
 						tknnext;
 						tkns.add(複合文);
+						continue;
 					end else begin;
 						tkns.add(式);
 					end;
